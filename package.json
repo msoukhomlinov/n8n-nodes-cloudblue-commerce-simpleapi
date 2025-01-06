@@ -1,0 +1,53 @@
+{
+  "name": "n8n-nodes-cloudblue-connect-simpleapi",
+  "version": "0.1.0",
+  "description": "n8n node to interact with CloudBlue Connect SimpleAPI",
+  "keywords": [
+    "n8n-community-node-package",
+    "cloudblue",
+    "connect",
+    "simpleapi"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "author": {
+    "name": "Max Soukhomlinov",
+    "email": "maxs@intellectit.com.au"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/msoukhomlinov/n8n-nodes-cloudblue-connect-simpleapi.git"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "tsc && gulp build:icons && gulp move-files",
+    "dev": "tsc --watch"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/CloudBlueConnectSimpleApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/CloudBlueConnectSimpleApi/CloudBlueConnectSimpleApi.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@typescript-eslint/parser": "~5.45",
+    "eslint-plugin-n8n-nodes-base": "^1.11.0",
+    "gulp": "^4.0.2",
+    "n8n-core": "^0.125.0",
+    "n8n-workflow": "^0.107.0",
+    "prettier": "^2.7.1",
+    "rimraf": "^5.0.5",
+    "typescript": "~4.8.4"
+  },
+  "dependencies": {
+    "keyv": "^4.5.3"
+  }
+}
