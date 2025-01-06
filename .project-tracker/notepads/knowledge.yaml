@@ -1,0 +1,200 @@
+best_practices:
+  language_specific:
+    typescript:
+      - Use strict type checking
+      - Implement proper interfaces
+      - Follow ESLint rules
+    n8n:
+      - Follow node development guidelines
+      - Implement proper error handling
+      - Use credential management
+  architecture:
+    patterns:
+      - Modular endpoint implementation
+      - Shared utility functions
+      - Consistent error handling
+    decisions:
+      - Use factory pattern for operations
+      - Implement strategy pattern for auth
+      - Standardize response handling
+  testing:
+    strategies:
+      - Unit test business logic
+      - Mock external dependencies
+      - Test error scenarios
+  interface_patterns:
+    resource_implementation:
+      base_resource:
+        - Abstract base class for all resources
+        - Handles common functionality (auth, caching, requests)
+        - Defines core interfaces and types
+        - Implements error handling and validation
+
+      resource_classes:
+        - Extend BaseResource
+        - Define resource-specific interfaces
+        - Implement CRUD operations
+        - Handle resource-specific validation
+
+      interface_hierarchy:
+        - IResource for resource metadata
+        - IApiResponse for standardized responses
+        - Resource-specific interfaces (IProduct, IOrder, etc.)
+        - Utility interfaces (IPaginatedResponse, ITransformOptions)
+
+      type_safety:
+        - Use strict TypeScript types
+        - Define enum-like string literals
+        - Implement proper generics
+        - Validate input/output types
+
+      error_handling:
+        - Use custom error types
+        - Include correlation IDs
+        - Map API errors to n8n errors
+        - Provide detailed error context
+
+      validation:
+        - Input validation before requests
+        - Response validation after requests
+        - Schema-based validation
+        - Custom validation rules
+
+  type_definitions:
+    core_types:
+      base_types:
+        - IDataObject from n8n-workflow
+        - Custom utility types (IPeriod, IApiResponse)
+        - Shared enums and constants
+
+      resource_types:
+        - Strong typing for all API resources
+        - Consistent naming (I prefix for interfaces)
+        - Clear type hierarchies
+        - Proper optional properties
+
+      response_types:
+        - Generic response wrapper (IApiResponse<T>)
+        - Pagination support (IPaginatedResponse<T>)
+        - Error types (IApiError)
+        - List response types (IOrderListResponse)
+
+    type_safety:
+      string_literals:
+        - Use union types for fixed values
+        - Document allowed values
+        - Consistent casing
+
+      generics:
+        - Generic response wrappers
+        - Type safe transformations
+        - Collection handling
+
+      nullability:
+        - Explicit optional properties
+        - Strict null checks
+        - Default values where appropriate
+
+    validation:
+      runtime:
+        - Type guards for API responses
+        - Validation decorators
+        - Schema validation
+
+      compile_time:
+        - Strict TypeScript config
+        - No implicit any
+        - Strict property initialization
+
+lessons_learned:
+  successes: []
+  challenges: []
+  improvements: []
+
+technical_debt:
+  identified: []
+  prioritised: []
+  resolved: []
+
+gap_analysis:
+  date: 2024-01-06
+  version: SimpleAPI 1.15
+  findings:
+    implementation_status:
+      strengths:
+        - Complete coverage of core API endpoints
+        - Solid authentication implementation
+        - Good base resource structure
+        - Proper error handling with correlation IDs
+
+    identified_gaps:
+      technical:
+        rate_limiting:
+          description: No explicit handling of API rate limits
+          impact: Could affect reliability under load
+          priority: Medium
+
+        retry_strategy:
+          description: Basic retry only for auth failures
+          impact: Limited resilience to transient failures
+          priority: High
+
+        bulk_operations:
+          description: No optimized bulk operation handling
+          impact: Potential performance bottleneck
+          priority: Medium
+
+        webhook_support:
+          description: No webhook handling implementation
+          impact: Limited event-driven capabilities
+          priority: Low
+
+      testing:
+        unit_tests:
+          description: Limited test coverage
+          impact: Reliability concerns
+          priority: High
+
+        integration_tests:
+          description: No end-to-end testing
+          impact: Integration reliability unknown
+          priority: High
+
+        performance_tests:
+          description: No load testing implementation
+          impact: Performance characteristics unknown
+          priority: Medium
+
+      documentation:
+        operation_examples:
+          description: Limited usage examples
+          impact: Reduced developer experience
+          priority: Medium
+
+        error_documentation:
+          description: Error codes not fully documented
+          impact: Harder troubleshooting
+          priority: Medium
+
+        integration_guide:
+          description: Missing comprehensive guide
+          impact: Longer integration time
+          priority: High
+
+  recommendations:
+    high_priority:
+      - Implement comprehensive retry strategy
+      - Add unit test coverage
+      - Create integration tests
+      - Develop integration guide
+
+    medium_priority:
+      - Add rate limiting handling
+      - Optimize bulk operations
+      - Improve error documentation
+      - Add performance tests
+
+    low_priority:
+      - Implement webhook support
+      - Enhance caching mechanism
+      - Add more usage examples
