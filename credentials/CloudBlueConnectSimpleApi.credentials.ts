@@ -1,33 +1,34 @@
 import type {
+  IAuthenticateGeneric,
+  ICredentialTestRequest,
   ICredentialType,
   INodeProperties,
-  ICredentialsDecrypted,
-  INodeCredentialTestResult,
-  ICredentialDataDecryptedObject,
-  IHttpRequestOptions,
-  ICredentialTestRequest,
 } from 'n8n-workflow';
-
-console.log('=== CloudBlueConnectSimpleApi Credentials Loading ===');
 
 export class CloudBlueConnectSimpleApi implements ICredentialType {
   name = 'cloudBlueConnectSimpleApi';
   displayName = 'CloudBlue Connect Simple API';
   documentationUrl = 'https://connect.cloudblue.com/community/sdk/connect/';
 
-  constructor() {
-    console.log('=== CloudBlueConnectSimpleApi Credentials Constructor Called ===');
-  }
-
   properties: INodeProperties[] = [
+    {
+      displayName: 'Auth URL',
+      name: 'authUrl',
+      type: 'string',
+      default: '',
+      description: 'The URL of the CloudBlue Connect Simple API authentication endpoint',
+      required: true,
+      placeholder: 'https://api.example.com/auth',
+    },
     {
       displayName: 'API URL',
       name: 'apiUrl',
       type: 'string',
       default: '',
+      description:
+        'The URL of the CloudBlue Connect Simple API service API for making actual API calls',
       required: true,
       placeholder: 'https://api.example.com',
-      description: 'The URL of the CloudBlue Connect Simple API',
     },
     {
       displayName: 'Username',
@@ -49,6 +50,25 @@ export class CloudBlueConnectSimpleApi implements ICredentialType {
       description: 'The password for Basic Authentication',
     },
     {
+      displayName: 'Client ID',
+      name: 'clientId',
+      type: 'string',
+      default: '',
+      required: true,
+      description: 'The client ID for OAuth2 authentication',
+    },
+    {
+      displayName: 'Client Secret',
+      name: 'clientSecret',
+      type: 'string',
+      typeOptions: {
+        password: true,
+      },
+      default: '',
+      required: true,
+      description: 'The client secret for OAuth2 authentication',
+    },
+    {
       displayName: 'Subscription Key',
       name: 'subscriptionKey',
       type: 'string',
@@ -59,15 +79,6 @@ export class CloudBlueConnectSimpleApi implements ICredentialType {
       required: true,
       description:
         "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls",
-    },
-    {
-      displayName: 'Marketplace',
-      name: 'marketplace',
-      type: 'string',
-      default: '',
-      required: true,
-      description: 'The marketplace code (e.g., "us" for United States, "uk" for United Kingdom)',
-      placeholder: 'us',
     },
     {
       displayName: 'Enable Cache',
@@ -101,40 +112,48 @@ export class CloudBlueConnectSimpleApi implements ICredentialType {
         },
       },
     },
+    {
+      displayName: 'Enable Debug Logging',
+      name: 'enableDebug',
+      type: 'boolean',
+      default: false,
+      description: 'Whether to enable debug logging of API requests and responses',
+    },
   ];
+
+  authenticate: IAuthenticateGeneric = {
+    type: 'generic',
+    properties: {},
+  };
 
   test: ICredentialTestRequest = {
     request: {
-      baseURL: '={{$credentials.apiUrl}}',
+      baseURL: '={{$credentials.authUrl}}',
       url: '/token',
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        Authorization:
-          '={{`Basic ${Buffer.from(`${$credentials.username}:${$credentials.password}`).toString("base64")}`}}',
-        'X-Subscription-Key': '={{$credentials.subscriptionKey}}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: '*/*',
+        'Accept-Encoding': 'gzip, deflate, br',
       },
       body: {
-        marketplace: '={{$credentials.marketplace}}',
+        grant_type: 'password',
+        username: '={{$credentials.username}}',
+        password: '={{$credentials.password}}',
+        client_id: '={{$credentials.clientId}}',
+        client_secret: '={{$credentials.clientSecret}}',
+        scope: 'openid',
       },
     },
+    rules: [
+      {
+        type: 'responseSuccessBody',
+        properties: {
+          key: 'access_token',
+          value: '{{typeof $response.access_token === "string"}}',
+          message: 'Invalid token response',
+        },
+      },
+    ],
   };
-
-  async authenticate(
-    credentials: ICredentialDataDecryptedObject,
-    requestOptions: IHttpRequestOptions,
-  ): Promise<IHttpRequestOptions> {
-    console.log('=== CloudBlueConnectSimpleApi Authenticate Called ===');
-    console.log('Base URL:', credentials.apiUrl);
-    console.log('Request URL:', requestOptions.url);
-    console.log('Full URL:', `${credentials.apiUrl}${requestOptions.url}`);
-    console.log('Request Method:', requestOptions.method);
-    console.log('Request Headers:', Object.keys(requestOptions.headers || {}));
-    console.log('Has Username:', !!credentials.username);
-    console.log('Has Password:', !!credentials.password);
-    console.log('Has Subscription Key:', !!credentials.subscriptionKey);
-    console.log('Has Marketplace:', !!credentials.marketplace);
-    console.log('Request Body:', requestOptions.body);
-    return requestOptions;
-  }
 }

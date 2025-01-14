@@ -1,21 +1,35 @@
-const { src, dest } = require('gulp');
+const gulp = require('gulp');
+const clean = require('rimraf');
 
-function copyIcons() {
-  return src('src/nodes/CloudBlueConnectSimpleApi/*.png')
-    .pipe(dest('dist/nodes/CloudBlueConnectSimpleApi/'));
+// Clean dist folder
+function cleanDist(cb) {
+  clean.sync('./dist');
+  cb();
 }
 
-function moveFiles() {
-  // Move node files
-  src('dist/src/nodes/**/*')
-    .pipe(dest('dist/nodes/'))
+// Copy credentials to dist
+function copyCredentials() {
+  return gulp.src('credentials/**/*').pipe(gulp.dest('dist/credentials'));
+}
+
+// Copy node files to dist (including icons and supporting folders)
+function copyNodeFiles() {
+  return gulp
+    .src('src/nodes/CloudBlueConnectSimpleApi/**/*', { base: 'src' })
+    .pipe(gulp.dest('dist'));
+}
+
+// Move compiled files to correct locations and cleanup
+function moveCompiledFiles() {
+  return gulp
+    .src('dist/src/nodes/CloudBlueConnectSimpleApi/**/*.{js,js.map,json}', { base: 'dist/src' })
+    .pipe(gulp.dest('dist'))
     .on('end', () => {
-      // Clean up src directory after moving
-      require('rimraf').sync('dist/src');
+      clean.sync('dist/src');
     });
-  return Promise.resolve();
 }
 
-exports.default = copyIcons;
-exports['build:icons'] = copyIcons;
-exports['move-files'] = moveFiles; 
+exports['copy:files'] = gulp.series(copyCredentials, copyNodeFiles);
+exports.cleanDist = cleanDist;
+exports.move = moveCompiledFiles;
+exports.default = gulp.series(cleanDist, copyCredentials, copyNodeFiles, moveCompiledFiles);

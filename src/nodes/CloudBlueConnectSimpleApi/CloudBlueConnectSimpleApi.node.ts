@@ -25,7 +25,7 @@ export class CloudBlueConnectSimpleApi implements INodeType {
   description: INodeTypeDescription = {
     displayName: 'CloudBlue Connect Simple API',
     name: 'cloudBlueConnectSimpleApi',
-    icon: 'file:cloudblue.png',
+    icon: 'file:cloudblue.svg',
     group: ['transform'],
     version: 1,
     subtitle: '={{$parameter["resource"] + ": " + $parameter["operation"]}}',
@@ -42,6 +42,7 @@ export class CloudBlueConnectSimpleApi implements INodeType {
       },
     ],
     properties: [
+      // Resource Selection
       {
         displayName: 'Resource',
         name: 'resource',
@@ -67,6 +68,7 @@ export class CloudBlueConnectSimpleApi implements INodeType {
         ],
         default: 'product',
       },
+      // Operation Selection for each resource - grouped together
       {
         displayName: 'Operation',
         name: 'operation',
@@ -104,36 +106,6 @@ export class CloudBlueConnectSimpleApi implements INodeType {
           },
         ],
         default: 'list',
-      },
-      {
-        displayName: 'Return All',
-        name: 'returnAll',
-        type: 'boolean',
-        default: false,
-        description: 'Whether to return all results or only up to a given limit',
-        displayOptions: {
-          show: {
-            resource: ['product', 'subscription', 'order', 'marketplace'],
-            operation: ['list'],
-          },
-        },
-      },
-      {
-        displayName: 'Max Records',
-        name: 'maxRecords',
-        type: 'number',
-        default: 10,
-        description: 'Max number of records to return',
-        typeOptions: {
-          minValue: 1,
-        },
-        displayOptions: {
-          show: {
-            resource: ['product', 'subscription', 'order', 'marketplace'],
-            operation: ['list'],
-            returnAll: [false],
-          },
-        },
       },
       {
         displayName: 'Operation',
@@ -249,6 +221,38 @@ export class CloudBlueConnectSimpleApi implements INodeType {
         ],
         default: 'list',
       },
+      // Common parameters for list operations
+      {
+        displayName: 'Return All',
+        name: 'returnAll',
+        type: 'boolean',
+        default: false,
+        description: 'Whether to return all results or only up to a given limit',
+        displayOptions: {
+          show: {
+            resource: ['product', 'subscription', 'order', 'marketplace'],
+            operation: ['list'],
+          },
+        },
+      },
+      {
+        displayName: 'Max Records',
+        name: 'limit',
+        type: 'number',
+        default: 10,
+        description: 'Max number of records to return',
+        typeOptions: {
+          minValue: 1,
+        },
+        displayOptions: {
+          show: {
+            resource: ['product', 'subscription', 'order', 'marketplace'],
+            operation: ['list'],
+            returnAll: [false],
+          },
+        },
+      },
+      // Resource-specific parameters
       {
         displayName: 'Product ID',
         name: 'productId',
@@ -361,31 +365,26 @@ export class CloudBlueConnectSimpleApi implements INodeType {
 
     console.log('Parameters:', { resource, operation });
 
-    const self = this as unknown as CloudBlueConnectSimpleApi;
-    const resourceInstance = self.resources[resource];
+    // Initialize resources map for this execution
+    const resources = {
+      product: new ProductResource(),
+      subscription: new SubscriptionResource(),
+      order: new OrderResource(),
+      marketplace: new MarketplaceResource(),
+    };
+
+    const resourceInstance = resources[resource];
+    if (!resourceInstance) {
+      throw new NodeOperationError(this.getNode(), `Resource ${resource} not found`);
+    }
 
     for (let i = 0; i < items.length; i++) {
       try {
         console.log(`Processing item ${i + 1}/${items.length}`);
         const response = await resourceInstance.execute(this, operation, i);
-        if (response.success && response.data) {
-          returnData.push({
-            json: response.data as unknown as IDataObject,
-          });
-        } else if (response.error) {
-          throw new NodeOperationError(
-            this.getNode(),
-            `CloudBlue API Error: ${response.error.message} (Code: ${response.error.code})`,
-            {
-              itemIndex: i,
-              description: JSON.stringify({
-                resource,
-                operation,
-                error: response.error,
-              }),
-            },
-          );
-        }
+        returnData.push({
+          json: response as unknown as IDataObject,
+        });
       } catch (error) {
         console.log('Error in execute:', error);
         if (this.continueOnFail()) {

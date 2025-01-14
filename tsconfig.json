@@ -15,4 +15,4 @@
   },
   "include": ["src/**/*", "credentials/**/*"],
   "exclude": ["node_modules/**/*", "dist/**/*"]
-} 
+}

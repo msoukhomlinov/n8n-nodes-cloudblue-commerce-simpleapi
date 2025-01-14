@@ -20,9 +20,11 @@
   },
   "main": "dist/index.js",
   "scripts": {
-    "prebuild": "rimraf dist",
-    "build": "tsc && gulp build:icons && gulp move-files",
-    "dev": "tsc --watch"
+    "build": "gulp cleanDist && tsc && gulp copy:files && gulp move",
+    "dev": "tsc --watch",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "clean": "gulp cleanDist"
   },
   "files": [
     "dist"
