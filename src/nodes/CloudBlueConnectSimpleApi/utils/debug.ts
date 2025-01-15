@@ -11,6 +11,9 @@ export const DEBUG_CONFIG = {
 
   // Authentication
   AUTH_FLOW: true, // Debug authentication flow
+  AUTH_REQUEST: true, // Debug authentication request
+  AUTH_ERROR: true, // Debug authentication error
+  AUTH_SUCCESS: true, // Debug authentication success
 
   // Cache
   CACHE_OPS: true, // Debug cache operations
@@ -24,10 +27,10 @@ export type DebugLogType =
   | 'RESOURCE_INIT'
   | 'RESOURCE_EXEC'
   | 'AUTH_FLOW'
-  | 'CACHE_OPS'
   | 'AUTH_REQUEST'
   | 'AUTH_ERROR'
-  | 'AUTH_SUCCESS';
+  | 'AUTH_SUCCESS'
+  | 'CACHE_OPS';
 
 /**
  * Type guard to check if a value is a Record<string, unknown>

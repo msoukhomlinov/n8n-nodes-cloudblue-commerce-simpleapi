@@ -1,6 +1,7 @@
 import type { IDataObject } from 'n8n-workflow';
 import { debugLog } from '../utils/debug';
 import { CloudBlueError } from '../utils/errorHandler';
+import type { IHttpResponse } from '../interfaces/api';
 
 interface ICloudBlueErrorResponse {
   message?: string;
@@ -9,7 +10,7 @@ interface ICloudBlueErrorResponse {
   details?: IDataObject;
 }
 
-export interface IApiResponse<T = unknown> {
+export interface ICloudBlueApiResponse<T = unknown> {
   data: T;
   status: number;
   headers: Record<string, string>;
@@ -145,7 +146,7 @@ export class CloudBlueApiService {
     return this.accessToken;
   }
 
-  public async request<T = unknown>(options: IRequestOptions): Promise<IApiResponse<T>> {
+  public async request<T = unknown>(options: IRequestOptions): Promise<ICloudBlueApiResponse<T>> {
     const token = await this.getValidToken();
     const { method, url, data, params, headers = {} } = options;
     const fullUrl = this.buildUrl(url, params);

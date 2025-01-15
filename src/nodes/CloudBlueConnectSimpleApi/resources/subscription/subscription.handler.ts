@@ -1,6 +1,11 @@
 import type { IDataObject, ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import type { IExecuteFunctions } from 'n8n-workflow';
-import type { ISubscription, ISubscriptionListResponse } from './subscription.types';
+import type {
+  ISubscription,
+  ISubscriptionListResponse,
+  ISubscriptionDetailed,
+  ISubscriptionDetailedResponse,
+} from './subscription.types';
 import type { CloudBlueApiService } from '../../services/CloudBlueApiService';
 import { createDefaultCrudOperations, registerCrudOperations } from '../../operations/common/crud';
 import {
@@ -16,9 +21,9 @@ import type {
   IOperationResult,
   OperationFunction,
 } from '../../operations/core/OperationRegistry';
-import { OperationMiddleware } from '../../operations/core/OperationMiddleware';
 import { debugLog } from '../../utils/debug';
 import { handleErrorWithRetry } from '../../utils/errorHandler';
+import { formatResponseArray } from '../../utils/responseFormatter';
 
 type ValidatorFunction = (params: unknown) => Promise<boolean>;
 type SubscriptionOperationType = 'get' | 'update' | 'getMany';
@@ -46,7 +51,7 @@ export class SubscriptionHandler {
     executeFunctions: IExecuteFunctions,
     operation: string,
     i: number,
-  ): Promise<unknown> {
+  ): Promise<IDataObject | IDataObject[]> {
     debugLog('RESOURCE_EXEC', 'Executing subscription operation', { operation, index: i });
 
     const registry = OperationRegistry.getInstance();
@@ -62,19 +67,25 @@ export class SubscriptionHandler {
         case 'get': {
           const id = executeFunctions.getNodeParameter('subscriptionId', i) as string;
           debugLog('RESOURCE_EXEC', 'Getting subscription', { id });
-          return this.getSubscription(id);
+          const subscription = await this.getSubscription(id);
+          const formattedItem = executeFunctions.helpers.returnJsonArray([subscription])[0];
+          return { ...formattedItem, pairedItem: { item: i } };
         }
         case 'update': {
           const id = executeFunctions.getNodeParameter('subscriptionId', i) as string;
           const data = executeFunctions.getNodeParameter('data', i) as IDataObject;
           debugLog('RESOURCE_EXEC', 'Updating subscription', { id, data });
-          return this.updateSubscription(id, data);
+          const updatedSubscription = await this.updateSubscription(id, data);
+          const formattedItem = executeFunctions.helpers.returnJsonArray([updatedSubscription])[0];
+          return { ...formattedItem, pairedItem: { item: i } };
         }
         case 'updateSpecialPricing': {
           const id = executeFunctions.getNodeParameter('subscriptionId', i) as string;
           const data = executeFunctions.getNodeParameter('data', i) as IDataObject;
           debugLog('RESOURCE_EXEC', 'Updating subscription special pricing', { id, data });
-          return this.updateSubscriptionSpecialPricing(id, data);
+          const updatedSubscription = await this.updateSubscriptionSpecialPricing(id, data);
+          const formattedItem = executeFunctions.helpers.returnJsonArray([updatedSubscription])[0];
+          return { ...formattedItem, pairedItem: { item: i } };
         }
         case 'getMany': {
           const returnAll = executeFunctions.getNodeParameter('returnAll', i) as boolean;
@@ -84,6 +95,11 @@ export class SubscriptionHandler {
             {},
           ) as IDataObject;
           const params: IDataObject = {};
+
+          debugLog('RESOURCE_EXEC', 'GetMany operation - Parameters', {
+            returnAll,
+            additionalParams,
+          });
 
           // Copy additional parameters if they are set
           if (additionalParams.status) {
@@ -101,8 +117,16 @@ export class SubscriptionHandler {
             params.limit = limit;
           }
 
-          debugLog('RESOURCE_EXEC', 'Getting many subscriptions', { params, returnAll });
-          return this.listSubscriptions(params);
+          // Get subscriptions using listSubscriptions - now returns array of { json: subscription }
+          const items = await this.listSubscriptions(params);
+
+          debugLog('RESOURCE_EXEC', 'Returning items', {
+            count: items.length,
+            format: 'Array<{ json: ISubscription }>',
+          });
+
+          // Return items directly since they're already in n8n format
+          return items;
         }
         default: {
           const error = `Operation ${operation} not supported`;
@@ -120,50 +144,75 @@ export class SubscriptionHandler {
     }
   }
 
-  private async getSubscription(id: string): Promise<ISubscription> {
+  private async getSubscription(id: string): Promise<ISubscriptionDetailed> {
     debugLog('RESOURCE_EXEC', 'Fetching subscription details', { id });
-    const response = await this.apiService.request<ISubscription>({
+    const response = await this.apiService.request<ISubscriptionDetailedResponse>({
       method: 'GET',
       url: `/subscriptions/${id}`,
     });
-    return response.data;
+    return response.data.data;
   }
 
-  private async updateSubscription(id: string, data: IDataObject): Promise<ISubscription> {
+  private async updateSubscription(id: string, data: IDataObject): Promise<ISubscriptionDetailed> {
     debugLog('RESOURCE_EXEC', 'Updating subscription', { id, data });
-    const response = await this.apiService.request<ISubscription>({
+    const response = await this.apiService.request<ISubscriptionDetailedResponse>({
       method: 'PUT',
       url: `/subscriptions/${id}`,
       data,
     });
-    return response.data;
+    return response.data.data;
   }
 
   private async updateSubscriptionSpecialPricing(
     id: string,
     data: IDataObject,
-  ): Promise<ISubscription> {
+  ): Promise<ISubscriptionDetailed> {
     debugLog('RESOURCE_EXEC', 'Updating subscription special pricing', { id, data });
-    const response = await this.apiService.request<ISubscription>({
+    const response = await this.apiService.request<ISubscriptionDetailedResponse>({
       method: 'POST',
       url: `/subscriptions/${id}/specialPricing`,
       data,
     });
-    return response.data;
+    return response.data.data;
   }
 
-  public async listSubscriptions(params: IDataObject): Promise<ISubscription[]> {
+  public async listSubscriptions(params: IDataObject): Promise<IDataObject[]> {
+    debugLog('RESOURCE_EXEC', 'Listing subscriptions - Start', { params });
     const response = await this.apiService.request<ISubscriptionListResponse>({
       method: 'GET',
       url: '/subscriptions',
       params,
     });
-    return response.data.data;
+
+    debugLog('RESOURCE_EXEC', 'API Response received', {
+      responseData: response.data,
+      dataType: typeof response.data,
+      hasData: !!response.data?.data,
+      dataLength: response.data?.data?.length,
+    });
+
+    if (!response.data?.data) {
+      debugLog('RESOURCE_EXEC', 'No data found in response');
+      return [];
+    }
+
+    // Transform each subscription into n8n format
+    const items = response.data.data.map((subscription) => ({
+      json: subscription,
+    }));
+
+    debugLog('RESOURCE_EXEC', 'Transformed subscriptions', {
+      count: items.length,
+      sampleItem: items[0],
+      format: 'Array<{ json: ISubscription }>',
+    });
+
+    return items;
   }
 
   private initializeOperations(): void {
     debugLog('RESOURCE_INIT', 'Initializing subscription operations');
-    const operations = createDefaultCrudOperations<ISubscription>(this.resourceName, {
+    const operations = createDefaultCrudOperations<IDataObject>(this.resourceName, {
       get: this.getSubscription.bind(this),
       update: this.updateSubscription.bind(this),
       getMany: this.listSubscriptions.bind(this),
