@@ -3,19 +3,30 @@ import { CloudBlueApiService } from '../services/CloudBlueApiService';
 import { ResponseProcessingService } from '../services/ResponseProcessingService';
 import { PaginationService } from '../services/PaginationService';
 import { QueryParameterService } from '../services/QueryParameterService';
-import type { IPaginatedResponse } from '../interfaces';
 
 export class ResourceSelector {
-  private readonly apiService: CloudBlueApiService;
+  private apiService!: CloudBlueApiService;
   private readonly responseProcessor: ResponseProcessingService;
   private readonly paginationService: PaginationService;
   private readonly queryService: QueryParameterService;
 
   constructor() {
-    this.apiService = CloudBlueApiService.getInstance();
     this.responseProcessor = new ResponseProcessingService();
     this.paginationService = new PaginationService();
     this.queryService = new QueryParameterService();
+  }
+
+  private async initializeApiService(loadOptionsFunctions: ILoadOptionsFunctions): Promise<void> {
+    const credentials = await loadOptionsFunctions.getCredentials('cloudBlueConnectSimpleApi');
+    this.apiService = CloudBlueApiService.getInstance(
+      credentials.apiUrl as string,
+      credentials.authUrl as string,
+      credentials.username as string,
+      credentials.password as string,
+      credentials.clientId as string,
+      credentials.clientSecret as string,
+      credentials.subscriptionKey as string,
+    );
   }
 
   async loadHierarchicalOptions(
@@ -24,6 +35,8 @@ export class ResourceSelector {
     currentParameters: Record<string, unknown>,
     parentFields: string[] = [],
   ): Promise<INodePropertyOptions[]> {
+    await this.initializeApiService(loadOptionsFunctions);
+
     // Validate parent dependencies
     const parentValues: Record<string, string> = {};
     for (const field of parentFields) {

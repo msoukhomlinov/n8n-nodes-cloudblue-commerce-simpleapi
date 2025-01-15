@@ -43,9 +43,4 @@ export interface ITransformOptions {
 }
 
 export * from './IPagination';
-export * from './IOrder';
-export * from './IReport';
-export * from './IReseller';
-export * from './IServicePlan';
 export * from './ISubscription';
-export * from './IValidation';

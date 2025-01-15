@@ -1,212 +1,234 @@
-import type {
-  IExecuteFunctions,
-  ILoadOptionsFunctions,
-  IHttpRequestOptions,
-  JsonObject,
-  IDataObject,
-  IHttpRequestMethods,
-} from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
-import type { IApiResponse } from '../interfaces';
+import type { IDataObject } from 'n8n-workflow';
+import { debugLog } from '../utils/debug';
+import { CloudBlueError } from '../utils/errorHandler';
 
-// Debug flag - set to true to enable detailed request/response logging
-const DEBUG_API_SERVICE = true;
+interface ICloudBlueErrorResponse {
+  message?: string;
+  code?: string;
+  statusCode?: number;
+  details?: IDataObject;
+}
 
-interface ErrorWithResponse extends Error {
-  response?: {
-    statusCode: number;
-  };
+export interface IApiResponse<T = unknown> {
+  data: T;
+  status: number;
+  headers: Record<string, string>;
+}
+
+export interface IRequestOptions {
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  url: string;
+  data?: IDataObject;
+  params?: IDataObject;
+  headers?: Record<string, string>;
 }
 
 export class CloudBlueApiService {
   private static instance: CloudBlueApiService;
-  private token: string | undefined;
-  private tokenExpiry: number | undefined;
+  private readonly baseUrl: string;
+  private readonly authUrl: string;
+  private readonly username: string;
+  private readonly password: string;
+  private readonly clientId: string;
+  private readonly clientSecret: string;
+  private readonly subscriptionKey: string;
+  private accessToken: string | null = null;
+  private tokenExpiry: number | null = null;
 
-  private constructor() {}
-
-  private logDebug(message: string, data?: unknown) {
-    if (DEBUG_API_SERVICE) {
-      console.log('\n=== CloudBlueApiService Debug ===');
-      console.log(message);
-      if (data) {
-        // Deep clone the data to avoid modifying the original
-        const sanitizedData = JSON.parse(JSON.stringify(data));
-
-        // Redact sensitive information
-        if (sanitizedData.headers?.Authorization) {
-          sanitizedData.headers.Authorization = sanitizedData.headers.Authorization.replace(
-            /(Bearer\s+)[^\s]+/,
-            '$1[REDACTED]',
-          );
-        }
-        if (sanitizedData.headers?.['X-Subscription-Key']) {
-          sanitizedData.headers['X-Subscription-Key'] = '[REDACTED]';
-        }
-
-        console.log(JSON.stringify(sanitizedData, null, 2));
-      }
-      console.log('================================\n');
-    }
+  private constructor(
+    baseUrl: string,
+    authUrl: string,
+    username: string,
+    password: string,
+    clientId: string,
+    clientSecret: string,
+    subscriptionKey: string,
+  ) {
+    this.baseUrl = baseUrl;
+    this.authUrl = authUrl;
+    this.username = username;
+    this.password = password;
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
+    this.subscriptionKey = subscriptionKey;
   }
 
-  public static getInstance(): CloudBlueApiService {
+  public static getInstance(
+    baseUrl: string,
+    authUrl: string,
+    username: string,
+    password: string,
+    clientId: string,
+    clientSecret: string,
+    subscriptionKey: string,
+  ): CloudBlueApiService {
     if (!CloudBlueApiService.instance) {
-      CloudBlueApiService.instance = new CloudBlueApiService();
+      CloudBlueApiService.instance = new CloudBlueApiService(
+        baseUrl,
+        authUrl,
+        username,
+        password,
+        clientId,
+        clientSecret,
+        subscriptionKey,
+      );
     }
     return CloudBlueApiService.instance;
   }
 
-  public async getToken(
-    executeFunctions: IExecuteFunctions | ILoadOptionsFunctions,
-  ): Promise<string> {
-    const now = Date.now();
+  private async authenticate(): Promise<string> {
+    debugLog('AUTH_FLOW', 'Authenticating with OAuth2', {
+      authUrl: this.authUrl,
+      username: this.username,
+      clientId: this.clientId,
+    });
 
-    // Check if token is still valid
-    if (this.token && this.tokenExpiry && now < this.tokenExpiry) {
-      return this.token;
-    }
-
-    const credentials = await executeFunctions.getCredentials('cloudBlueConnectSimpleApi');
-    const options: IHttpRequestOptions = {
-      method: 'POST',
-      url: '/token',
-      baseURL: (credentials.authUrl as string).replace(/\/+$/, ''),
-      body: {
-        grant_type: 'password',
-        username: credentials.username,
-        password: credentials.password,
-        client_id: credentials.clientId,
-        client_secret: credentials.clientSecret,
-        scope: 'openid',
-      },
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: '*/*',
-        'Accept-Encoding': 'gzip, deflate, br',
-      },
-    };
+    const authUrl = `${this.authUrl}/token`;
+    const body = new URLSearchParams({
+      grant_type: 'password',
+      username: this.username,
+      password: this.password,
+      client_id: this.clientId,
+      client_secret: this.clientSecret,
+      scope: 'openid',
+    });
 
     try {
-      const response = (await executeFunctions.helpers.httpRequest(options)) as {
+      const response = await fetch(authUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: '*/*',
+          'Accept-Encoding': 'gzip, deflate, br',
+        },
+        body: body.toString(),
+      });
+
+      if (!response.ok) {
+        const errorData = (await response.json().catch(() => ({}))) as IDataObject;
+        debugLog('AUTH_FLOW', 'Authentication failed', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
+        });
+        throw new CloudBlueError('Authentication failed', 'AUTH_ERROR', response.status, errorData);
+      }
+
+      interface IAuthResponse {
         access_token: string;
         expires_in: number;
-      };
-      this.token = response.access_token;
-      this.tokenExpiry = now + response.expires_in * 1000;
-      return this.token;
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        const errorObject: JsonObject = {
-          message: error.message || 'Unknown error',
-          name: error.name || 'Error',
-        };
-
-        if (error.stack) {
-          errorObject.stack = error.stack;
-        }
-
-        const apiError = error as ErrorWithResponse;
-        if (apiError.response?.statusCode) {
-          errorObject.statusCode = apiError.response.statusCode.toString();
-        }
-
-        throw new NodeApiError(executeFunctions.getNode(), errorObject, {
-          message: 'Failed to obtain access token',
-          description: error.message || 'Unknown error',
-          httpCode: apiError.response?.statusCode.toString(),
-        });
       }
+
+      const data = (await response.json()) as IAuthResponse;
+      this.accessToken = data.access_token;
+      // Set token expiry to 5 minutes before actual expiry
+      this.tokenExpiry = Date.now() + (data.expires_in - 300) * 1000;
+
+      debugLog('AUTH_FLOW', 'Authentication successful', {
+        expiresIn: data.expires_in,
+      });
+
+      return this.accessToken;
+    } catch (error) {
+      debugLog('AUTH_FLOW', 'Authentication error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       throw error;
     }
   }
 
-  async makeRequest<T>(
-    executeFunctions: IExecuteFunctions | ILoadOptionsFunctions,
-    method: IHttpRequestMethods,
-    endpoint: string,
-    body?: IDataObject,
-    qs?: IDataObject,
-  ): Promise<IApiResponse<T>> {
-    const credentials = await executeFunctions.getCredentials('cloudBlueConnectSimpleApi');
-    const token = await this.getToken(executeFunctions);
+  private async getValidToken(): Promise<string> {
+    if (!this.accessToken || !this.tokenExpiry || Date.now() >= this.tokenExpiry) {
+      return this.authenticate();
+    }
+    return this.accessToken;
+  }
 
-    const options: IHttpRequestOptions = {
+  public async request<T = unknown>(options: IRequestOptions): Promise<IApiResponse<T>> {
+    const token = await this.getValidToken();
+    const { method, url, data, params, headers = {} } = options;
+    const fullUrl = this.buildUrl(url, params);
+
+    debugLog('API_REQUEST', 'Making API request', {
       method,
-      baseURL: (credentials.apiUrl as string).replace(/\/+$/, ''),
-      url: endpoint,
-      body,
-      qs,
+      url: fullUrl,
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...headers,
         'Content-Type': 'application/json',
-        Accept: '*/*',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'X-Subscription-Key': credentials.subscriptionKey as string,
+        Authorization: `Bearer ${token}`,
+        'X-Subscription-Key': this.subscriptionKey,
       },
-    };
+      params,
+    });
 
     try {
-      this.logDebug('Request:', {
-        url: `${options.baseURL}${endpoint}`,
+      const response = await fetch(fullUrl, {
         method,
-        headers: options.headers,
-        queryParams: qs,
-        body,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'X-Subscription-Key': this.subscriptionKey,
+          ...headers,
+        },
+        body: data ? JSON.stringify(data) : undefined,
       });
 
-      const response = await executeFunctions.helpers.httpRequest(options);
+      if (!response.ok) {
+        const errorData = (await response.json().catch(() => ({}))) as ICloudBlueErrorResponse;
+        debugLog('API_ERROR', 'API request failed', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
+        });
 
-      this.logDebug('Response:', {
-        statusCode: 200, // n8n's httpRequest doesn't expose status code on success
-        body: response,
-      });
-
-      // Handle array-wrapped response with success check
-      if (Array.isArray(response) && response.length > 0) {
-        const firstItem = response[0];
-        if (!firstItem.success) {
-          throw new Error('API response indicates failure');
-        }
-        return {
-          success: true,
-          data: firstItem.data,
-        };
+        throw new CloudBlueError(
+          errorData.message || response.statusText,
+          errorData.code || 'API_ERROR',
+          response.status,
+          errorData.details || {},
+        );
       }
 
-      // For non-array responses, wrap in success structure
-      return {
-        success: true,
-        data: response as T,
+      const responseData = await response.json();
+      const apiResponse = {
+        data: responseData as T,
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries()),
       };
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        const errorObject: JsonObject = {
-          message: error.message || 'Unknown error',
-          name: error.name || 'Error',
-        };
 
-        if (error.stack) {
-          errorObject.stack = error.stack;
-        }
+      debugLog('API_RESPONSE', 'Received API response', apiResponse);
 
-        const apiError = error as ErrorWithResponse;
-        if (apiError.response?.statusCode) {
-          errorObject.statusCode = apiError.response.statusCode.toString();
-        }
-
-        this.logDebug('Error Response:', {
-          error: errorObject,
-          statusCode: apiError.response?.statusCode,
-        });
-
-        throw new NodeApiError(executeFunctions.getNode(), errorObject, {
-          message: 'API request failed',
-          description: error.message || 'Unknown error',
-          httpCode: apiError.response?.statusCode.toString(),
-        });
-      }
+      return apiResponse;
+    } catch (error) {
+      debugLog('API_ERROR', 'API request error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       throw error;
     }
+  }
+
+  private buildUrl(path: string, params?: IDataObject): string {
+    const baseUrl = this.baseUrl.endsWith('/') ? this.baseUrl : `${this.baseUrl}/`;
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    const url = new URL(cleanPath, baseUrl);
+
+    if (params) {
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
+      }
+    }
+
+    debugLog('API_URL', 'Constructed URL', {
+      baseUrl,
+      path: cleanPath,
+      params,
+      fullUrl: url.toString(),
+    });
+
+    return url.toString();
   }
 }

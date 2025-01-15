@@ -34,15 +34,13 @@ export class PaginationService {
     let currentOffset = Number(query.offset);
 
     do {
-      const response = await apiService.makeRequest<IPaginatedResponse<T>>(
-        executeFunctions,
-        'GET',
-        endpoint,
-        undefined,
-        { ...query, offset: currentOffset },
-      );
+      const response = await apiService.request<IPaginatedResponse<T>>({
+        method: 'GET',
+        url: endpoint,
+        params: { ...query, offset: currentOffset },
+      });
 
-      if (!response.success || !response.data) {
+      if (!response.data) {
         throw new Error('Failed to fetch paginated data');
       }
 
