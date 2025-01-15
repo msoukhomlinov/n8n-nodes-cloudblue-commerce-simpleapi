@@ -7,15 +7,18 @@ import type {
   IDataObject,
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
+import { CloudBlueApiService } from './services/CloudBlueApiService';
 
 console.log('=== CloudBlueConnectSimpleApi Node Loading ===');
 
-import { ProductResource } from './resources/ProductResource';
-import { SubscriptionResource } from './resources/SubscriptionResource';
-import { OrderResource } from './resources/OrderResource';
-import { MarketplaceResource } from './resources/MarketplaceResource';
+// TODO: Migrate these resources to new structure
+// import { ProductResource } from './resources/ProductResource';
+import { SubscriptionHandler } from './resources/subscription/subscription.handler';
+// import { OrderResource } from './resources/OrderResource';
+// import { MarketplaceResource } from './resources/MarketplaceResource';
 
-type ResourceType = 'product' | 'subscription' | 'order' | 'marketplace';
+// TODO: Update this type as resources are migrated
+type ResourceType = 'subscription';
 
 export class CloudBlueConnectSimpleApi implements INodeType {
   constructor() {
@@ -50,62 +53,11 @@ export class CloudBlueConnectSimpleApi implements INodeType {
         noDataExpression: true,
         options: [
           {
-            name: 'Product',
-            value: 'product',
-          },
-          {
             name: 'Subscription',
             value: 'subscription',
           },
-          {
-            name: 'Order',
-            value: 'order',
-          },
-          {
-            name: 'Marketplace',
-            value: 'marketplace',
-          },
         ],
-        default: 'product',
-      },
-      // Operation Selection for each resource - grouped together
-      {
-        displayName: 'Operation',
-        name: 'operation',
-        type: 'options',
-        noDataExpression: true,
-        displayOptions: {
-          show: {
-            resource: ['product'],
-          },
-        },
-        options: [
-          {
-            name: 'List',
-            value: 'list',
-            description: 'List all products',
-            action: 'List all products',
-          },
-          {
-            name: 'Get',
-            value: 'get',
-            description: 'Get a product by ID',
-            action: 'Get a product',
-          },
-          {
-            name: 'Create',
-            value: 'create',
-            description: 'Create a new product',
-            action: 'Create a product',
-          },
-          {
-            name: 'Update',
-            value: 'update',
-            description: 'Update a product',
-            action: 'Update a product',
-          },
-        ],
-        default: 'list',
+        default: 'subscription',
       },
       {
         displayName: 'Operation',
@@ -118,12 +70,6 @@ export class CloudBlueConnectSimpleApi implements INodeType {
           },
         },
         options: [
-          {
-            name: 'List',
-            value: 'list',
-            description: 'List all subscriptions',
-            action: 'List all subscriptions',
-          },
           {
             name: 'Get',
             value: 'get',
@@ -131,10 +77,10 @@ export class CloudBlueConnectSimpleApi implements INodeType {
             action: 'Get a subscription',
           },
           {
-            name: 'Create',
-            value: 'create',
-            description: 'Create a new subscription',
-            action: 'Create a subscription',
+            name: 'Get Many',
+            value: 'getMany',
+            description: 'Get many subscriptions',
+            action: 'Get many subscriptions',
           },
           {
             name: 'Update',
@@ -142,165 +88,16 @@ export class CloudBlueConnectSimpleApi implements INodeType {
             description: 'Update a subscription',
             action: 'Update a subscription',
           },
-        ],
-        default: 'list',
-      },
-      {
-        displayName: 'Operation',
-        name: 'operation',
-        type: 'options',
-        noDataExpression: true,
-        displayOptions: {
-          show: {
-            resource: ['order'],
-          },
-        },
-        options: [
           {
-            name: 'List',
-            value: 'list',
-            description: 'List all orders',
-            action: 'List all orders',
-          },
-          {
-            name: 'Get',
-            value: 'get',
-            description: 'Get an order by ID',
-            action: 'Get an order',
-          },
-          {
-            name: 'Create',
-            value: 'create',
-            description: 'Create a new order',
-            action: 'Create an order',
-          },
-          {
-            name: 'Update',
-            value: 'update',
-            description: 'Update an order',
-            action: 'Update an order',
+            name: 'Update Special Pricing',
+            value: 'updateSpecialPricing',
+            description: 'Update special pricing for a subscription',
+            action: 'Update subscription special pricing',
           },
         ],
-        default: 'list',
+        default: 'getMany',
       },
-      {
-        displayName: 'Operation',
-        name: 'operation',
-        type: 'options',
-        noDataExpression: true,
-        displayOptions: {
-          show: {
-            resource: ['marketplace'],
-          },
-        },
-        options: [
-          {
-            name: 'List',
-            value: 'list',
-            description: 'List all marketplaces',
-            action: 'List all marketplaces',
-          },
-          {
-            name: 'Get',
-            value: 'get',
-            description: 'Get a marketplace by ID',
-            action: 'Get a marketplace',
-          },
-          {
-            name: 'Create',
-            value: 'create',
-            description: 'Create a new marketplace',
-            action: 'Create a marketplace',
-          },
-          {
-            name: 'Update',
-            value: 'update',
-            description: 'Update a marketplace',
-            action: 'Update a marketplace',
-          },
-        ],
-        default: 'list',
-      },
-      // Common parameters for list operations
-      {
-        displayName: 'Return All',
-        name: 'returnAll',
-        type: 'boolean',
-        default: false,
-        description: 'Whether to return all results or only up to a given limit',
-        displayOptions: {
-          show: {
-            resource: ['product', 'subscription', 'order', 'marketplace'],
-            operation: ['list'],
-          },
-        },
-      },
-      {
-        displayName: 'Max Records',
-        name: 'limit',
-        type: 'number',
-        default: 10,
-        description: 'Max number of records to return',
-        typeOptions: {
-          minValue: 1,
-        },
-        displayOptions: {
-          show: {
-            resource: ['product', 'subscription', 'order', 'marketplace'],
-            operation: ['list'],
-            returnAll: [false],
-          },
-        },
-      },
-      // Resource-specific parameters
-      {
-        displayName: 'Product ID',
-        name: 'productId',
-        type: 'options',
-        typeOptions: {
-          loadOptionsMethod: 'getProducts',
-        },
-        required: true,
-        default: '',
-        description: 'The ID of the product',
-        displayOptions: {
-          show: {
-            resource: ['subscription'],
-            operation: ['create'],
-          },
-        },
-      },
-      {
-        displayName: 'Marketplace ID',
-        name: 'marketplaceId',
-        type: 'options',
-        typeOptions: {
-          loadOptionsMethod: 'getMarketplaces',
-        },
-        required: true,
-        default: '',
-        description: 'The ID of the marketplace',
-        displayOptions: {
-          show: {
-            resource: ['subscription'],
-            operation: ['create'],
-          },
-        },
-      },
-      {
-        displayName: 'Product ID',
-        name: 'productId',
-        type: 'string',
-        required: true,
-        default: '',
-        description: 'The ID of the product to retrieve',
-        displayOptions: {
-          show: {
-            resource: ['product'],
-            operation: ['get', 'update'],
-          },
-        },
-      },
+      // Subscription operation parameters
       {
         displayName: 'Subscription ID',
         name: 'subscriptionId',
@@ -311,47 +108,161 @@ export class CloudBlueConnectSimpleApi implements INodeType {
         displayOptions: {
           show: {
             resource: ['subscription'],
-            operation: ['get', 'update'],
+            operation: ['get', 'update', 'updateSpecialPricing'],
           },
         },
       },
       {
-        displayName: 'Order ID',
-        name: 'orderId',
-        type: 'string',
+        displayName: 'Data',
+        name: 'data',
+        type: 'collection',
         required: true,
-        default: '',
-        description: 'The ID of the order',
+        default: {},
+        placeholder: 'Add Field',
+        description: 'The data to update the subscription with',
         displayOptions: {
           show: {
-            resource: ['order'],
-            operation: ['get', 'update'],
+            resource: ['subscription'],
+            operation: ['update'],
+          },
+        },
+        options: [
+          {
+            displayName: 'Status',
+            name: 'status',
+            type: 'string',
+            default: '',
+            description: 'The status of the subscription',
+          },
+        ],
+      },
+      {
+        displayName: 'Data',
+        name: 'data',
+        type: 'collection',
+        required: true,
+        default: {},
+        placeholder: 'Add Field',
+        description: 'The special pricing data',
+        displayOptions: {
+          show: {
+            resource: ['subscription'],
+            operation: ['updateSpecialPricing'],
+          },
+        },
+        options: [
+          {
+            displayName: 'Price',
+            name: 'price',
+            type: 'number',
+            default: 0,
+            description: 'The special price for the subscription',
+          },
+        ],
+      },
+      {
+        displayName: 'Return All',
+        name: 'returnAll',
+        type: 'boolean',
+        default: false,
+        description: 'Whether to return all results or only up to a given limit',
+        displayOptions: {
+          show: {
+            resource: ['subscription'],
+            operation: ['getMany'],
           },
         },
       },
       {
-        displayName: 'Marketplace ID',
-        name: 'marketplaceId',
-        type: 'string',
-        required: true,
-        default: '',
-        description: 'The ID of the marketplace',
+        displayName: 'Limit',
+        name: 'limit',
+        type: 'number',
+        typeOptions: {
+          minValue: 1,
+        },
+        default: 50,
+        description: 'Max number of results to return',
         displayOptions: {
           show: {
-            resource: ['marketplace'],
-            operation: ['get', 'update'],
+            resource: ['subscription'],
+            operation: ['getMany'],
+            returnAll: [false],
           },
         },
+      },
+      {
+        displayName: 'Filters',
+        name: 'params',
+        type: 'collection',
+        default: {},
+        placeholder: 'Add Filter',
+        description: 'Filter the results',
+        displayOptions: {
+          show: {
+            resource: ['subscription'],
+            operation: ['getMany'],
+          },
+        },
+        options: [
+          {
+            displayName: 'Status',
+            name: 'status',
+            type: 'options',
+            options: [
+              { name: 'Active', value: 'active' },
+              { name: 'Pending', value: 'pending' },
+              { name: 'Cancelled', value: 'cancelled' },
+              { name: 'Suspended', value: 'suspended' },
+            ],
+            default: 'active',
+            description: 'Filter subscriptions by status',
+          },
+          {
+            displayName: 'Created After',
+            name: 'created_after',
+            type: 'dateTime',
+            default: '',
+            description: 'Filter subscriptions created after this date',
+          },
+          {
+            displayName: 'Created Before',
+            name: 'created_before',
+            type: 'dateTime',
+            default: '',
+            description: 'Filter subscriptions created before this date',
+          },
+          {
+            displayName: 'Product ID',
+            name: 'product_id',
+            type: 'string',
+            default: '',
+            description: 'Filter by product ID',
+          },
+          {
+            displayName: 'Marketplace ID',
+            name: 'marketplace_id',
+            type: 'string',
+            default: '',
+            description: 'Filter by marketplace ID',
+          },
+          {
+            displayName: 'Connection ID',
+            name: 'connection_id',
+            type: 'string',
+            default: '',
+            description: 'Filter by connection ID',
+          },
+          {
+            displayName: 'External ID',
+            name: 'external_id',
+            type: 'string',
+            default: '',
+            description: 'Filter by external ID',
+          },
+        ],
       },
     ],
   };
-
-  private readonly resources = {
-    product: new ProductResource(),
-    subscription: new SubscriptionResource(),
-    order: new OrderResource(),
-    marketplace: new MarketplaceResource(),
-  } as const;
 
   async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
     console.log('=== CloudBlueConnectSimpleApi Execute Called ===');
@@ -365,17 +276,28 @@ export class CloudBlueConnectSimpleApi implements INodeType {
 
     console.log('Parameters:', { resource, operation });
 
+    const credentials = await this.getCredentials('cloudBlueConnectSimpleApi');
+    const apiService = CloudBlueApiService.getInstance(
+      credentials.apiUrl as string,
+      credentials.authUrl as string,
+      credentials.username as string,
+      credentials.password as string,
+      credentials.clientId as string,
+      credentials.clientSecret as string,
+      credentials.subscriptionKey as string,
+    );
+
     // Initialize resources map for this execution
     const resources = {
-      product: new ProductResource(),
-      subscription: new SubscriptionResource(),
-      order: new OrderResource(),
-      marketplace: new MarketplaceResource(),
+      subscription: SubscriptionHandler.getInstance(apiService),
     };
 
     const resourceInstance = resources[resource];
     if (!resourceInstance) {
-      throw new NodeOperationError(this.getNode(), `Resource ${resource} not found`);
+      throw new NodeOperationError(
+        this.getNode(),
+        `Resource ${resource} not found or not yet migrated`,
+      );
     }
 
     for (let i = 0; i < items.length; i++) {
@@ -419,24 +341,26 @@ export class CloudBlueConnectSimpleApi implements INodeType {
     const propertyName = this.getNodeParameter('loadOptionsMethod') as string;
     const currentNodeParameters = this.getCurrentNodeParameters() as Record<string, unknown>;
 
-    const self = this as unknown as CloudBlueConnectSimpleApi;
-    const resourceInstance = self.resources[resource];
+    const credentials = await this.getCredentials('cloudBlueConnectSimpleApi');
+    const apiService = CloudBlueApiService.getInstance(
+      credentials.apiUrl as string,
+      credentials.authUrl as string,
+      credentials.username as string,
+      credentials.password as string,
+      credentials.clientId as string,
+      credentials.clientSecret as string,
+      credentials.subscriptionKey as string,
+    );
 
-    switch (propertyName) {
-      case 'productId': {
-        return resourceInstance.loadOptions(this, 'productId', currentNodeParameters);
-      }
+    const resources = {
+      subscription: SubscriptionHandler.getInstance(apiService),
+    };
 
-      case 'marketplaceId': {
-        return resourceInstance.loadOptions(this, 'marketplaceId', currentNodeParameters);
-      }
-
-      case 'subscriptionId': {
-        return resourceInstance.loadOptions(this, 'subscriptionId', currentNodeParameters);
-      }
-
-      default:
-        return [];
+    const resourceInstance = resources[resource];
+    if (!resourceInstance) {
+      return [];
     }
+
+    return resourceInstance.loadOptions(this, propertyName, currentNodeParameters);
   }
 }
