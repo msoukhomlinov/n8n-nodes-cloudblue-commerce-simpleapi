@@ -1,17 +1,14 @@
 import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import { CloudBlueApiService } from '../services/CloudBlueApiService';
-import { ResponseProcessingService } from '../services/ResponseProcessingService';
 import { PaginationService } from '../services/PaginationService';
 import { QueryParameterService } from '../services/QueryParameterService';
 
 export class ResourceSelector {
   private apiService!: CloudBlueApiService;
-  private readonly responseProcessor: ResponseProcessingService;
   private readonly paginationService: PaginationService;
   private readonly queryService: QueryParameterService;
 
   constructor() {
-    this.responseProcessor = new ResponseProcessingService();
     this.paginationService = new PaginationService();
     this.queryService = new QueryParameterService();
   }
@@ -48,6 +45,12 @@ export class ResourceSelector {
     }
 
     try {
+      // Build query parameters using QueryParameterService
+      const additionalParams = this.queryService.buildQueryParameters(loadOptionsFunctions, 0, [
+        { name: 'status', type: 'string', default: 'active' },
+        ...this.getParameterDefinitionsForProperty(propertyName, parentValues),
+      ]);
+
       // Get paginated results with filters
       const results = await this.paginationService.getPaginatedResults<{
         id: string;
@@ -59,10 +62,7 @@ export class ResourceSelector {
         {
           returnAll: false,
           limit: 100,
-          additionalParams: {
-            ...this.getFiltersForProperty(propertyName, parentValues),
-            status: 'active',
-          },
+          additionalParams,
         },
       );
 
@@ -83,10 +83,6 @@ export class ResourceSelector {
     parentValues: Record<string, string>,
   ): string {
     switch (propertyName) {
-      case 'marketplace_id':
-        return '/marketplaces';
-      case 'product_id':
-        return `/marketplaces/${parentValues.marketplace_id}/products`;
       case 'subscription_id':
         return `/marketplaces/${parentValues.marketplace_id}/subscriptions`;
       default:
@@ -94,24 +90,28 @@ export class ResourceSelector {
     }
   }
 
-  private getFiltersForProperty(
+  private getParameterDefinitionsForProperty(
     propertyName: string,
     parentValues: Record<string, string>,
-  ): Record<string, unknown> {
-    const filters: Record<string, unknown> = {};
+  ): Array<{ name: string; type: string; default?: unknown }> {
+    const definitions = [];
 
     switch (propertyName) {
       case 'product_id':
-        filters.marketplace_id = parentValues.marketplace_id;
+        definitions.push({
+          name: 'marketplace_id',
+          type: 'string',
+          default: parentValues.marketplace_id,
+        });
         break;
       case 'subscription_id':
-        filters.marketplace_id = parentValues.marketplace_id;
-        if (parentValues.product_id) {
-          filters.product_id = parentValues.product_id;
-        }
+        definitions.push(
+          { name: 'marketplace_id', type: 'string', default: parentValues.marketplace_id },
+          { name: 'product_id', type: 'string', default: parentValues.product_id },
+        );
         break;
     }
 
-    return filters;
+    return definitions;
   }
 }

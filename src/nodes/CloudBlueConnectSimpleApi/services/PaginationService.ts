@@ -1,16 +1,7 @@
 import type { IExecuteFunctions, ILoadOptionsFunctions, IDataObject } from 'n8n-workflow';
-import type { IApiResponse } from '../interfaces';
+import type { IPaginatedResponse } from '../interfaces/api';
 import type { CloudBlueApiService } from './CloudBlueApiService';
 import { PAGINATION } from '../utils/constants';
-
-interface IPaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    offset: number;
-    limit: number;
-    total: number;
-  };
-}
 
 export class PaginationService {
   public async getPaginatedResults<T>(
