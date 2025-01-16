@@ -249,4 +249,32 @@ export class CloudBlueApiService {
 
     return url.toString();
   }
+
+  public async get<T = unknown>(
+    url: string,
+    params?: IDataObject,
+  ): Promise<ICloudBlueApiResponse<T>> {
+    return this.request<T>({
+      method: 'GET',
+      url,
+      params,
+    });
+  }
+
+  public async getMany<T = unknown>(
+    url: string,
+    params?: IDataObject,
+    limit?: number,
+    offset?: number,
+  ): Promise<ICloudBlueApiResponse<T>> {
+    const queryParams: IDataObject = { ...params };
+    if (limit !== undefined) queryParams.limit = limit;
+    if (offset !== undefined) queryParams.offset = offset;
+
+    return this.request<T>({
+      method: 'GET',
+      url,
+      params: queryParams,
+    });
+  }
 }
