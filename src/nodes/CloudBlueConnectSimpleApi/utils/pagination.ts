@@ -22,15 +22,7 @@ async function makeRequest<T>(
   offset: number,
   limit: number,
 ): Promise<{ data?: IListResponse<T> }> {
-  return await apiService.request<IListResponse<T>>({
-    method: 'GET',
-    url: endpoint,
-    params: {
-      ...params,
-      offset,
-      limit,
-    },
-  });
+  return await apiService.getMany<IListResponse<T>>(endpoint, params, limit, offset);
 }
 
 /**

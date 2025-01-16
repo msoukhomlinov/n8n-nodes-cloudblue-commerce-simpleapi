@@ -17,7 +17,11 @@ import type {
   ILoadOptionsFunctions,
   INodePropertyOptions,
 } from 'n8n-workflow';
-import type { ISubscription, ISubscriptionListResponse } from './subscription.types';
+import type {
+  ISubscription,
+  ISubscriptionListResponse,
+  ISubscriptionDetailed,
+} from './subscription.types';
 import type { CloudBlueApiService } from '../../services/CloudBlueApiService';
 import { debugLog } from '../../utils/debug';
 import { getMany } from '../../utils/pagination';
@@ -104,6 +108,16 @@ export class SubscriptionHandler {
         i,
         params,
       );
+    }
+
+    if (operation === 'get') {
+      const subscriptionId = executeFunctions.getNodeParameter('subscriptionId', i) as string;
+      debugLog('RESOURCE_EXEC', 'Getting subscription by ID', { subscriptionId });
+
+      const response = await this.apiService.get<ISubscriptionDetailed>(
+        `/subscriptions/${subscriptionId}`,
+      );
+      return response.data;
     }
 
     throw new Error(`Operation ${operation} not supported`);
