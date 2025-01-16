@@ -41,3 +41,7 @@ __tests__/
 .tmp/
 .temp/
 *.tmp
+
+# Other
+REMOVED_FILE
+Simple-Subscription-List.ps1
