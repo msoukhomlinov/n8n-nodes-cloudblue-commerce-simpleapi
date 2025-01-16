@@ -81,38 +81,6 @@ export class CloudBlueConnectSimpleApi implements ICredentialType {
         "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls",
     },
     {
-      displayName: 'Enable Cache',
-      name: 'enableCache',
-      type: 'boolean',
-      default: false,
-      description:
-        'Whether to enable response caching. Cache is automatically invalidated when related resources are created, updated, or deleted.',
-    },
-    {
-      displayName: 'Cache TTL (seconds)',
-      name: 'cacheTTL',
-      type: 'number',
-      default: 300,
-      description: 'Time to live for cached responses in seconds. Only GET requests are cached.',
-      displayOptions: {
-        show: {
-          enableCache: [true],
-        },
-      },
-    },
-    {
-      displayName: 'Cache Size',
-      name: 'cacheSize',
-      type: 'number',
-      default: 500,
-      description: 'Maximum number of responses to cache',
-      displayOptions: {
-        show: {
-          enableCache: [true],
-        },
-      },
-    },
-    {
       displayName: 'Enable Debug Logging',
       name: 'enableDebug',
       type: 'boolean',
