@@ -61,10 +61,8 @@ export class SubscriptionHandler {
 
       debugLog('RESOURCE_EXEC', 'Mapped output', response.data.data);
 
-      // Return raw data array
-      return response.data.data.map((record: IDataObject) => ({
-        json: record,
-      }));
+      // Return each record as a separate item
+      return response.data.data;
     }
 
     throw new Error(`Operation ${operation} not supported`);

@@ -41,3 +41,7 @@ __tests__/
 .tmp/
 .temp/
 *.tmp
+
+# Other
+test-subscription-list.ps1
+Simple-Subscription-List.ps1

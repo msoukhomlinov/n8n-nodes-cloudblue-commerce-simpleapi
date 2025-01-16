@@ -268,7 +268,7 @@ export class CloudBlueConnectSimpleApi implements INodeType {
     console.log('=== CloudBlueConnectSimpleApi Execute Called ===');
     console.log('Getting input data...');
     const items = this.getInputData();
-    const returnData: INodeExecutionData[] = [];
+    let returnData: INodeExecutionData[] = [];
 
     console.log('Getting parameters...');
     const resource = this.getNodeParameter('resource', 0) as ResourceType;
@@ -304,9 +304,19 @@ export class CloudBlueConnectSimpleApi implements INodeType {
       try {
         console.log(`Processing item ${i + 1}/${items.length}`);
         const response = await resourceInstance.execute(this, operation, i);
-        returnData.push({
-          json: response as unknown as IDataObject,
-        });
+
+        // Handle array response for getMany
+        if (operation === 'getMany' && Array.isArray(response)) {
+          returnData = returnData.concat(
+            response.map((item) => ({
+              json: item as IDataObject,
+            })),
+          );
+        } else {
+          returnData.push({
+            json: response as IDataObject,
+          });
+        }
       } catch (error) {
         console.log('Error in execute:', error);
         if (this.continueOnFail()) {
