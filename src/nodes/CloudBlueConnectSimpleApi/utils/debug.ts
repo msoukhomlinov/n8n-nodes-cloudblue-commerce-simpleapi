@@ -1,3 +1,15 @@
+/**
+ * @file Debug and Logging Utilities
+ * @description Provides debugging and logging functionality for the CloudBlue Connect Simple API integration.
+ * Features include:
+ * - Configurable debug categories
+ * - Sensitive data redaction
+ * - Structured logging for different operation types
+ * - Type-safe debug configuration
+ *
+ * @module CloudBlueConnectSimpleApi/utils/debug
+ */
+
 export const DEBUG_CONFIG = {
   // API Communication
   API_REQUEST: true, // Debug API request details
