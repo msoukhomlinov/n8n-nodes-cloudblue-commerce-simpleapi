@@ -31,7 +31,7 @@ export interface ICloudBlueApiResponse<T = unknown> {
 }
 
 export interface IRequestOptions {
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   url: string;
   data?: IDataObject;
   params?: IDataObject;
@@ -275,6 +275,19 @@ export class CloudBlueApiService {
       method: 'GET',
       url,
       params: queryParams,
+    });
+  }
+
+  public async patch<T = unknown>(
+    url: string,
+    data?: IDataObject,
+    params?: IDataObject,
+  ): Promise<ICloudBlueApiResponse<T>> {
+    return await this.request<T>({
+      method: 'PATCH',
+      url,
+      data,
+      params,
     });
   }
 }
