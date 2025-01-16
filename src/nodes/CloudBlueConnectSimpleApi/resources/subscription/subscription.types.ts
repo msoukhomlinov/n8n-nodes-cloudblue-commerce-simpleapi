@@ -53,6 +53,8 @@ export interface ISubscriptionProduct {
   quantity: number;
   name: string;
   unitPrice: IPrice;
+  unitCost?: IPrice;
+  unitProviderCost?: IPrice;
   extendedPrice: IPrice;
   vendorSubscriptionId?: string;
 }
@@ -62,33 +64,62 @@ export interface ISubscription extends IDataObject {
   id: string;
   name: string;
   customerId: string;
-  status: SubscriptionStatus | null;
-  type?: string;
-  attributes: Record<string, unknown>;
+  status: SubscriptionStatus | 'unknown';
+  attributes: Record<string, string>;
   renewalStatus: boolean;
   creationDate: string | null;
+  renewalDate?: string | null;
   lastModifiedDate: string | null;
   expirationDate: string | null;
   billingModel: BillingModelType | null;
   billingPeriod: IPeriod;
   subscriptionPeriod: IPeriod;
   planId: number | null;
-  product?: {
-    id: string;
-    name: string;
-  };
-  marketplace?: {
-    id: string;
-    name: string;
-  };
 }
 
 // Detailed subscription interface (used in get single operation)
 export interface ISubscriptionDetailed extends ISubscription {
   totalPrice: IPrice;
+  totalSubscriptionPrice?: IPrice;
+  totalSubscriptionCost?: IPrice;
+  totalSubscriptionProviderCost?: IPrice;
   products: ISubscriptionProduct[];
   orderParameters: IParameterValue[];
   fulfillmentParameters: IParameterValue[];
+}
+
+// Update interfaces
+export interface ISubscriptionProductUpdate {
+  mpn?: string;
+  id?: string;
+  unitPrice?: {
+    currency: string;
+    amount: string;
+    priceTiers?: Array<{
+      range_start: number;
+      range_end: number;
+      price: number;
+    }>;
+  };
+  unitCost?: {
+    currency: string;
+    amount: string;
+    priceTiers?: Array<{
+      range_start: number;
+      range_end: number;
+      price: number;
+    }>;
+  };
+  unitProviderCost?: {
+    currency: string;
+    amount: string;
+  };
+}
+
+export interface ISubscriptionUpdate extends IDataObject {
+  products?: ISubscriptionProductUpdate[];
+  attributes?: Record<string, string>;
+  renewalStatus?: boolean;
 }
 
 // Response interfaces

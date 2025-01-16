@@ -67,7 +67,7 @@ export const fields = {
     },
   },
   updateData: {
-    displayName: 'Data',
+    displayName: 'Update Fields',
     name: 'data',
     type: 'collection',
     required: true,
@@ -82,22 +82,115 @@ export const fields = {
     },
     options: [
       {
-        displayName: 'Status',
-        name: 'status',
-        type: 'string',
-        default: '',
-        description: 'The status of the subscription',
+        displayName: 'Renewal Status',
+        name: 'renewalStatus',
+        type: 'boolean',
+        default: false,
+        description: 'Whether the subscription should auto-renew',
+      },
+      {
+        displayName: 'Attributes',
+        name: 'attributes',
+        type: 'fixedCollection',
+        typeOptions: {
+          multipleValues: true,
+        },
+        default: {},
+        placeholder: 'Add Attribute',
+        options: [
+          {
+            name: 'attribute',
+            displayName: 'Attribute',
+            values: [
+              {
+                displayName: 'Key',
+                name: 'key',
+                type: 'string',
+                default: '',
+                description: 'Name of the attribute',
+              },
+              {
+                displayName: 'Value',
+                name: 'value',
+                type: 'string',
+                default: '',
+                description: 'Value of the attribute',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        displayName: 'Products',
+        name: 'products',
+        type: 'fixedCollection',
+        typeOptions: {
+          multipleValues: true,
+        },
+        default: {},
+        placeholder: 'Add Product',
+        options: [
+          {
+            name: 'product',
+            displayName: 'Product',
+            values: [
+              {
+                displayName: 'MPN',
+                name: 'mpn',
+                type: 'string',
+                default: '',
+                description: 'Manufacturer Part Number',
+              },
+              {
+                displayName: 'ID',
+                name: 'id',
+                type: 'string',
+                default: '',
+                description: 'Product ID',
+              },
+              {
+                displayName: 'Unit Price',
+                name: 'unitPrice',
+                type: 'fixedCollection',
+                default: {},
+                options: [
+                  {
+                    name: 'price',
+                    displayName: 'Price',
+                    values: [
+                      {
+                        displayName: 'Currency',
+                        name: 'currency',
+                        type: 'string',
+                        default: '',
+                        description: 'Currency code (e.g. USD)',
+                      },
+                      {
+                        displayName: 'Amount',
+                        name: 'amount',
+                        type: 'string',
+                        default: '',
+                        description: 'Price amount',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       },
     ],
   },
   specialPricingData: {
-    displayName: 'Data',
+    displayName: 'Special Pricing',
     name: 'data',
-    type: 'collection',
+    type: 'fixedCollection',
     required: true,
-    default: {},
-    placeholder: 'Add Field',
-    description: 'The special pricing data',
+    default: {
+      products: [],
+    },
+    description: 'The special pricing data for products',
     displayOptions: {
       show: {
         resource: ['subscription'],
@@ -106,11 +199,133 @@ export const fields = {
     },
     options: [
       {
-        displayName: 'Price',
-        name: 'price',
-        type: 'number',
-        default: 0,
-        description: 'The special price for the subscription',
+        displayName: 'Products',
+        name: 'products',
+        values: [
+          {
+            displayName: 'Product',
+            name: 'product',
+            type: 'fixedCollection',
+            typeOptions: {
+              multipleValues: true,
+            },
+            default: {},
+            required: true,
+            description: 'Product to update pricing for',
+            options: [
+              {
+                name: 'values',
+                displayName: 'Values',
+                values: [
+                  {
+                    displayName: 'MPN',
+                    name: 'mpn',
+                    type: 'string',
+                    default: '',
+                    description: 'Manufacturer Part Number',
+                  },
+                  {
+                    displayName: 'ID',
+                    name: 'id',
+                    type: 'string',
+                    default: '',
+                    description: 'Product ID',
+                  },
+                  {
+                    displayName: 'Unit Price',
+                    name: 'unitPrice',
+                    type: 'fixedCollection',
+                    default: {},
+                    options: [
+                      {
+                        name: 'price',
+                        displayName: 'Price',
+                        values: [
+                          {
+                            displayName: 'Currency',
+                            name: 'currency',
+                            type: 'string',
+                            default: '',
+                            description: 'Currency code (e.g. USD)',
+                            required: true,
+                          },
+                          {
+                            displayName: 'Amount',
+                            name: 'amount',
+                            type: 'string',
+                            default: '',
+                            description: 'Price amount',
+                            required: true,
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  {
+                    displayName: 'Unit Cost',
+                    name: 'unitCost',
+                    type: 'fixedCollection',
+                    default: {},
+                    options: [
+                      {
+                        name: 'cost',
+                        displayName: 'Cost',
+                        values: [
+                          {
+                            displayName: 'Currency',
+                            name: 'currency',
+                            type: 'string',
+                            default: '',
+                            description: 'Currency code (e.g. USD)',
+                            required: true,
+                          },
+                          {
+                            displayName: 'Amount',
+                            name: 'amount',
+                            type: 'string',
+                            default: '',
+                            description: 'Price amount',
+                            required: true,
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  {
+                    displayName: 'Unit Provider Cost',
+                    name: 'unitProviderCost',
+                    type: 'fixedCollection',
+                    default: {},
+                    options: [
+                      {
+                        name: 'providerCost',
+                        displayName: 'Provider Cost',
+                        values: [
+                          {
+                            displayName: 'Currency',
+                            name: 'currency',
+                            type: 'string',
+                            default: '',
+                            description: 'Currency code (e.g. USD)',
+                            required: true,
+                          },
+                          {
+                            displayName: 'Amount',
+                            name: 'amount',
+                            type: 'string',
+                            default: '',
+                            description: 'Price amount',
+                            required: true,
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       },
     ],
   },
