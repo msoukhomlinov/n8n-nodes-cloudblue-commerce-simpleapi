@@ -1,12 +1,28 @@
+/**
+ * @file Subscription Resource Handler
+ * @description Handles all subscription-related operations for the CloudBlue Connect API.
+ * Implements:
+ * - CRUD operations for subscriptions
+ * - Dynamic option loading for subscription fields
+ * - Response transformation and validation
+ *
+ * Uses singleton pattern to maintain consistent state and API service access.
+ *
+ * @module CloudBlueConnectSimpleApi/resources/subscription/handler
+ */
+
 import type {
   IDataObject,
   IExecuteFunctions,
   ILoadOptionsFunctions,
   INodePropertyOptions,
 } from 'n8n-workflow';
-import type { ISubscriptionListResponse } from './subscription.types';
+import type { ISubscription, ISubscriptionListResponse } from './subscription.types';
 import type { CloudBlueApiService } from '../../services/CloudBlueApiService';
 import { debugLog } from '../../utils/debug';
+import { getMany } from '../../utils/pagination';
+import { convertRelativeDate, formatDateToYYYYMMDD } from '../../utils/dateConverter';
+import type { IDateFilter } from '../../interfaces/filters';
 
 export class SubscriptionHandler {
   private static instance: SubscriptionHandler;
@@ -33,36 +49,61 @@ export class SubscriptionHandler {
     if (operation === 'getMany') {
       const params: IDataObject = {};
 
-      // Handle limit parameter
-      const returnAll = executeFunctions.getNodeParameter('returnAll', i) as boolean;
-      if (!returnAll) {
-        const limit = executeFunctions.getNodeParameter('limit', i) as number;
-        params.limit = limit;
+      // Get filters collection
+      const filters = executeFunctions.getNodeParameter('params', i, {}) as IDataObject;
+      debugLog('RESOURCE_EXEC', 'Retrieved filters', filters);
+
+      // Map filters to API parameters
+      if (filters.status) {
+        params.status = filters.status;
       }
 
-      // Get raw response from API
-      const response = await this.apiService.request<ISubscriptionListResponse>({
-        method: 'GET',
-        url: '/subscriptions',
+      if (filters.creationDateFrom) {
+        const creationDateFrom = filters.creationDateFrom as IDateFilter;
+        debugLog('RESOURCE_EXEC', 'creationDateFrom value', creationDateFrom);
+        if (creationDateFrom.presetDate?.preset) {
+          params.creationDateFrom = formatDateToYYYYMMDD(
+            convertRelativeDate(creationDateFrom.presetDate.preset).toISOString(),
+          );
+        } else if (creationDateFrom.datePicker?.date) {
+          params.creationDateFrom = formatDateToYYYYMMDD(creationDateFrom.datePicker.date);
+        }
+      }
+
+      if (filters.creationDateTo) {
+        const creationDateTo = filters.creationDateTo as IDateFilter;
+        debugLog('RESOURCE_EXEC', 'creationDateTo value', creationDateTo);
+        if (creationDateTo.presetDate?.preset) {
+          params.creationDateTo = formatDateToYYYYMMDD(
+            convertRelativeDate(creationDateTo.presetDate.preset).toISOString(),
+          );
+        } else if (creationDateTo.datePicker?.date) {
+          params.creationDateTo = formatDateToYYYYMMDD(creationDateTo.datePicker.date);
+        }
+      }
+
+      if (filters.product_id) {
+        params.productId = filters.product_id;
+      }
+
+      if (filters.marketplace_id) {
+        params.marketplaceId = filters.marketplace_id;
+      }
+
+      if (filters.connection_id) {
+        params.connectionId = filters.connection_id;
+      }
+
+      debugLog('RESOURCE_EXEC', 'Request parameters', params);
+
+      // Use common pagination handler with specific subscription type
+      return await getMany<ISubscription>(
+        executeFunctions,
+        this.apiService,
+        '/subscriptions',
+        i,
         params,
-      });
-
-      if (!response.data?.data) {
-        return [];
-      }
-
-      debugLog('RESOURCE_EXEC', 'Raw API response', {
-        data: response.data,
-        hasData: !!response.data?.data,
-        count: response.data.data.length,
-        limit: params.limit,
-        returnAll,
-      });
-
-      debugLog('RESOURCE_EXEC', 'Mapped output', response.data.data);
-
-      // Return each record as a separate item
-      return response.data.data;
+      );
     }
 
     throw new Error(`Operation ${operation} not supported`);

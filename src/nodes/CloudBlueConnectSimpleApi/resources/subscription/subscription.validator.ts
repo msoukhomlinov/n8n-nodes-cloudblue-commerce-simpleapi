@@ -1,3 +1,16 @@
+/**
+ * @file Subscription Validation Functions
+ * @description Provides validation functions for subscription operations.
+ * Implements:
+ * - Input parameter validation for CRUD operations
+ * - Type checking and data structure validation
+ * - Status and enum value validation
+ *
+ * Uses debug logging for validation failures to aid troubleshooting.
+ *
+ * @module CloudBlueConnectSimpleApi/resources/subscription/validator
+ */
+
 import type { IDataObject } from 'n8n-workflow';
 import type { ISubscription } from './subscription.types';
 import { SubscriptionStatus } from './subscription.types';
@@ -72,7 +85,6 @@ export async function validateSubscriptionList(params: unknown): Promise<boolean
 function isDataObject(value: unknown): value is IDataObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
-
 function isValidStatus(status: string): boolean {
   const isValid = Object.values(SubscriptionStatus).includes(status as SubscriptionStatus);
   if (!isValid) {

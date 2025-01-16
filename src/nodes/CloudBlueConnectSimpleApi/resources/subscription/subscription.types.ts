@@ -1,3 +1,15 @@
+/**
+ * @file Subscription Type Definitions
+ * @description Type definitions for the Subscription resource.
+ * Defines:
+ * - Core subscription interfaces and types
+ * - Subscription status and billing enums
+ * - Request/Response types for API interactions
+ * - Nested types for subscription components (periods, prices, parameters)
+ *
+ * @module CloudBlueConnectSimpleApi/resources/subscription/types
+ */
+
 import type { IDataObject } from 'n8n-workflow';
 import type { IPaginatedResponse, IApiResponse } from '../../interfaces/api';
 
@@ -7,7 +19,6 @@ export enum SubscriptionStatus {
   HOLD = 'hold',
   TERMINATED = 'terminated',
   REMOVED = 'removed',
-  UNKNOWN = 'unknown',
 }
 
 export type BillingModelType =

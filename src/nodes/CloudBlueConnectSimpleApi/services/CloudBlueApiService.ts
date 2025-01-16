@@ -1,3 +1,17 @@
+/**
+ * @file CloudBlue API Service
+ * @description Core service for interacting with the CloudBlue Connect API.
+ * Implements:
+ * - Authentication and token management
+ * - Request handling with automatic retries
+ * - Error handling and response transformation
+ * - URL construction and parameter handling
+ *
+ * Uses singleton pattern to maintain a single authenticated instance.
+ *
+ * @module CloudBlueConnectSimpleApi/services/CloudBlueApiService
+ */
+
 import type { IDataObject } from 'n8n-workflow';
 import { debugLog } from '../utils/debug';
 import { CloudBlueError } from '../utils/errorHandler';
