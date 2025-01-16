@@ -13,8 +13,9 @@
 import type { IExecuteFunctions, ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import type { CloudBlueApiService } from '../services/CloudBlueApiService';
 import { SubscriptionHandler } from './subscription/subscription.handler';
+import { CustomerHandler } from './customer/customer.handler';
 
-export type ResourceType = 'subscription';
+export type ResourceType = 'subscription' | 'customer';
 type ResourceFunctions = IExecuteFunctions | ILoadOptionsFunctions;
 
 export interface IResourceHandler {
@@ -33,6 +34,7 @@ export class ResourceRegistry {
   private constructor(apiService: CloudBlueApiService) {
     this.resources = {
       subscription: SubscriptionHandler.getInstance(apiService),
+      customer: CustomerHandler.getInstance(apiService),
     };
   }
 

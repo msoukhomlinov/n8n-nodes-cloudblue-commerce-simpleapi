@@ -29,6 +29,9 @@ export const DEBUG_CONFIG = {
 
   // Cache
   CACHE_OPS: true, // Debug cache operations
+
+  // Resource Validation
+  CUSTOMER_VALIDATE: true, // Debug customer validation
 };
 
 export type DebugLogType =
@@ -42,7 +45,8 @@ export type DebugLogType =
   | 'AUTH_REQUEST'
   | 'AUTH_ERROR'
   | 'AUTH_SUCCESS'
-  | 'CACHE_OPS';
+  | 'CACHE_OPS'
+  | 'CUSTOMER_VALIDATE';
 
 /**
  * Type guard to check if a value is a Record<string, unknown>

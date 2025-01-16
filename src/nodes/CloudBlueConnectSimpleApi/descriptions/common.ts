@@ -39,9 +39,13 @@ export const resourceSelection = {
   noDataExpression: true,
   options: [
     {
+      name: 'Customer',
+      value: 'customer',
+    },
+    {
       name: 'Subscription',
       value: 'subscription',
     },
   ],
-  default: 'subscription',
+  default: 'customer',
 };
