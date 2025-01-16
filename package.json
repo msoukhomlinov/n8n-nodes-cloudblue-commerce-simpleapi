@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/msoukhomlinov/n8n-nodes-cloudblue-connect-simpleapi.git"
+    "url": "https://github.com/msoukhomlinov/n8n-nodes-cloudblue-commerce-simpleapi.git"
   },
   "main": "dist/index.js",
   "scripts": {
