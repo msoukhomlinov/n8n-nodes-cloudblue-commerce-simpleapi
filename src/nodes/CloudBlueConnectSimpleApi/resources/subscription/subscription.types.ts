@@ -1,4 +1,5 @@
 import type { IDataObject } from 'n8n-workflow';
+import type { IPaginatedResponse, IApiResponse } from '../../interfaces/api';
 
 export enum SubscriptionStatus {
   PENDING = 'pending',
@@ -80,15 +81,6 @@ export interface ISubscriptionDetailed extends ISubscription {
 }
 
 // Response interfaces
-export interface ISubscriptionListResponse {
-  data: ISubscription[];
-  pagination: {
-    offset: number;
-    limit: number;
-    total: number;
-  };
-}
+export type ISubscriptionListResponse = IPaginatedResponse<ISubscription>;
 
-export interface ISubscriptionDetailedResponse {
-  data: ISubscriptionDetailed;
-}
+export type ISubscriptionDetailedResponse = IApiResponse<ISubscriptionDetailed>;

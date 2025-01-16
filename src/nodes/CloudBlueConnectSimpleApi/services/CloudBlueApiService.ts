@@ -191,7 +191,10 @@ export class CloudBlueApiService {
         );
       }
 
-      const responseData = await response.json();
+      const responseText = await response.text();
+      debugLog('API_RESPONSE', 'Pre-parsed response', responseText);
+
+      const responseData = JSON.parse(responseText);
       const apiResponse = {
         data: responseData as T,
         status: response.status,

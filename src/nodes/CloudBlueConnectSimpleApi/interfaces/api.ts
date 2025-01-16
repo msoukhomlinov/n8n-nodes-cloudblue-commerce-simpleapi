@@ -11,6 +11,8 @@ export interface IApiResponse<T> {
   data?: T;
   error?: IApiError;
   correlationId?: string;
+  status?: number;
+  headers?: Record<string, string>;
 }
 
 export interface IPagination {
@@ -19,8 +21,7 @@ export interface IPagination {
   total: number;
 }
 
-export interface IPaginatedResponse<T> {
-  data: T[];
+export interface IPaginatedResponse<T> extends IApiResponse<T[]> {
   pagination: IPagination;
 }
 

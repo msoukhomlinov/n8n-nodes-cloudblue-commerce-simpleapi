@@ -72,3 +72,6 @@ Thumbs.db
 
 # Cache
 .cache/
+
+# Other
+REMOVED_FILE
