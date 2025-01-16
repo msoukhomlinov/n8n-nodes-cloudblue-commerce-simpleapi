@@ -1,20 +1,3 @@
-/**
- * @file CloudBlue Connect Simple API Node Implementation
- * @description Main n8n node implementation for CloudBlue Connect Simple API integration.
- * This node serves as the entry point for all CloudBlue Connect operations and is responsible for:
- * - Defining the node's interface and properties
- * - Handling execution of operations across different resources
- * - Managing dynamic option loading for node parameters
- * - Error handling and response formatting
- *
- * The node uses a modular architecture where:
- * - Resources are managed through a central registry
- * - API interactions are handled by dedicated service classes
- * - Operations and fields are defined in separate description files
- *
- * @module CloudBlueConnectSimpleApi/node
- */
-
 import type {
   IExecuteFunctions,
   ILoadOptionsFunctions,
@@ -33,13 +16,16 @@ import {
 import { initializeApiService } from './utils/credentials';
 import type { ResourceType } from './resources/registry';
 import { ResourceRegistry } from './resources/registry';
+import { customerOperations, customerFields } from './descriptions/customer';
 
 export class CloudBlueConnectSimpleApi implements INodeType {
   description: INodeTypeDescription = {
     ...baseDescription,
     properties: [
       resourceSelection,
-      subscriptionOperations,
+      ...customerOperations,
+      ...customerFields,
+      ...(Object.values(subscriptionOperations) as unknown as INodeProperties[]),
       ...Object.values(subscriptionFields),
     ] as unknown as INodeProperties[],
   } as INodeTypeDescription;
