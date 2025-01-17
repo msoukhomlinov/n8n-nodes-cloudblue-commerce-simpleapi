@@ -1,10 +1,10 @@
 /**
  * @file Main Entry Point
- * @description Entry point for the n8n CloudBlue Connect Simple API integration.
+ * @description Entry point for the n8n CloudBlue Commerce SimpleAPI integration.
  * Exports the main node class for n8n to discover and register.
  *
- * @module CloudBlueConnectSimpleApi
+ * @module CloudBlueCommerceSimpleApi
  */
 
-import { CloudBlueConnectSimpleApi } from './nodes/CloudBlueConnectSimpleApi/CloudBlueConnectSimpleApi.node';
-export { CloudBlueConnectSimpleApi };
+import { CloudBlueCommerceSimpleApi } from './nodes/CloudBlueCommerceSimpleApi/CloudBlueCommerceSimpleApi.node';
+export { CloudBlueCommerceSimpleApi };
