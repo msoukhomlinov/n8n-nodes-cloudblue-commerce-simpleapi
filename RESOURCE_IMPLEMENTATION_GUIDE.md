@@ -1,6 +1,6 @@
-# CloudBlue Connect SimpleAPI Resource Implementation Guide
+# CloudBlue Commerce SimpleAPI Resource Implementation Guide
 
-This guide outlines the framework for implementing new resources in the CloudBlue Connect SimpleAPI node, based on the subscription resource implementation pattern.
+This guide outlines the framework for implementing new resources in the CloudBlue Commerce SimpleAPI node, based on the subscription resource implementation pattern.
 
 ## Resource Implementation Structure
 
@@ -8,9 +8,9 @@ This guide outlines the framework for implementing new resources in the CloudBlu
 ```
 src/
 ├── credentials/
-│   └── CloudBlueConnectSimpleApi.credentials.ts # Credentials definition
-└── nodes/CloudBlueConnectSimpleApi/
-    ├── CloudBlueConnectSimpleApi.node.ts # Main node implementation
+│   └── CloudBlueCommerceSimpleApi.credentials.ts # Credentials definition
+└── nodes/CloudBlueCommerceSimpleApi/
+    ├── CloudBlueCommerceSimpleApi.node.ts # Main node implementation
     ├── resources/
     │   ├── {resource}/
     │   │   ├── {resource}.handler.ts    # Resource operation handler
@@ -37,32 +37,32 @@ src/
 
 ### 2. Core Components
 
-#### 2.1 Main Node (`CloudBlueConnectSimpleApi.node.ts`)
+#### 2.1 Main Node (`CloudBlueCommerceSimpleApi.node.ts`)
 - Entry point for the n8n node
 - Defines node metadata and configuration
 - Handles resource routing and execution
 - Manages credential validation
 - Example structure:
   ```typescript
-  export class CloudBlueConnectSimpleApi implements INodeType {
+  export class CloudBlueCommerceSimpleApi implements INodeType {
     description: INodeTypeDescription;
 
     // Node configuration and metadata
     constructor() {
       this.description = {
-        displayName: 'CloudBlue Connect SimpleAPI',
-        name: 'cloudBlueConnectSimpleApi',
+        displayName: 'CloudBlue Commerce SimpleAPI',
+        name: 'cloudBlueCommerceSimpleApi',
         icon: 'file:cloudblue.svg',
         group: ['transform'],
         version: 1,
         subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-        description: 'Consume CloudBlue Connect SimpleAPI',
+        description: 'Consume CloudBlue Commerce SimpleAPI',
         defaults: {
-          name: 'CloudBlue Connect SimpleAPI',
+          name: 'CloudBlue Commerce SimpleAPI',
         },
         credentials: [
           {
-            name: 'cloudBlueConnectSimpleApi',
+            name: 'cloudBlueCommerceSimpleApi',
             required: true,
           },
         ],
@@ -75,15 +75,15 @@ src/
   }
   ```
 
-#### 2.2 Credentials (`CloudBlueConnectSimpleApi.credentials.ts`)
+#### 2.2 Credentials (`CloudBlueCommerceSimpleApi.credentials.ts`)
 - Defines credential fields and validation
 - Implements credential testing
 - Example structure:
   ```typescript
-  export class CloudBlueConnectSimpleApiCredentials implements ICredentialType {
-    name = 'cloudBlueConnectSimpleApi';
-    displayName = 'CloudBlue Connect SimpleAPI';
-    documentationUrl = 'cloudBlueConnectSimpleApi';
+  export class CloudBlueCommerceSimpleApiCredentials implements ICredentialType {
+    name = 'cloudBlueCommerceSimpleApi';
+    displayName = 'CloudBlue Commerce SimpleAPI';
+    documentationUrl = 'cloudBlueCommerceSimpleApi';
 
     properties: INodeProperties[] = [
       {
@@ -152,10 +152,9 @@ src/
 - Debug logging for validation failures
 
 #### 2.4 Resource Description (`descriptions/{resource}/index.ts`)
-- Defines available operations
-- Specifies field properties and validation rules
-- Handles display options and conditional rendering
-- Maps to OpenAPI specification operations
+- Defines available operations and fields for the resource
+- Follow the [Description Template Guide](./DESCRIPTION_TEMPLATE_GUIDE.md) for consistent implementation
+- Ensures standardized naming, structure, and best practices
 
 ## OpenAPI Specification Integration
 
@@ -259,7 +258,7 @@ Each file should include a JSDoc header following this pattern:
  * - Key functionality 2
  * - etc.
  *
- * @module CloudBlueConnectSimpleApi/path/to/file
+ * @module CloudBlueCommerceSimpleApi/path/to/file
  */
 ```
 
@@ -289,6 +288,143 @@ Each file should include a JSDoc header following this pattern:
    - Implement unit tests
    - Add integration tests
    - Test error scenarios
+
+## Resource Handler Best Practices
+
+### 1. Error Handling Standardization
+```typescript
+try {
+  // Operation logic
+} catch (error: any) {
+  debugLog('RESOURCE_EXEC', `Error in ${resource} operation`, { operation, error });
+
+  // Extract correlation ID if available
+  const correlationId = error.error?.correlationId;
+  const errorMessage = error.error?.message || error.message;
+  const errorPrefix = correlationId ? `[Correlation ID: ${correlationId}] ` : '';
+
+  // Standard error mapping
+  if (error.httpCode === 404 ||
+    (error.httpCode === 400 && errorMessage.includes('No entity has been found'))) {
+    throw new Error(`${errorPrefix}${resource} not found: ${errorMessage}`);
+  }
+  if (error.httpCode === 429) {
+    throw new Error(`${errorPrefix}Rate limit exceeded: ${errorMessage}`);
+  }
+  // ... other standard error mappings
+}
+```
+
+### 2. Parameter Handling Pattern
+```typescript
+// Standard parameter collection
+const params: IResourceFilter = {};
+
+// Consistent pagination handling
+const returnAll = executeFunctions.getNodeParameter('returnAll', i, false) as boolean;
+params.limit = returnAll
+  ? PAGINATION.MAX_LIMIT
+  : (executeFunctions.getNodeParameter('limit', i) as number);
+if (!returnAll) {
+  params.offset = executeFunctions.getNodeParameter('offset', i, 0) as number;
+}
+
+// Standard filter parameter naming
+const filters = executeFunctions.getNodeParameter('filters', i, {}) as IDataObject;
+```
+
+### 3. Update Operation Pattern
+```typescript
+private async update(
+  executeFunctions: IExecuteFunctions,
+  i: number,
+): Promise<IResourceDetailed> {
+  this.validator.validateUpdateOperation(executeFunctions, i);
+
+  const resourceId = executeFunctions.getNodeParameter('resourceId', i) as string;
+  const updateData = executeFunctions.getNodeParameter('data', i) as IDataObject;
+
+  debugLog('RESOURCE_EXEC', `Updating ${resource}`, { resourceId, updateData });
+
+  const updateBody: IResourceUpdate = {};
+
+  // Validate and transform update fields
+  Object.entries(updateData).forEach(([key, value]) => {
+    if (value !== undefined) {
+      updateBody[key] = this.validateUpdateField(key, value);
+    }
+  });
+
+  const response = await this.apiService.patch<IResourceDetailed>(
+    `/${resource}s/${resourceId}`,
+    updateBody,
+  );
+
+  if (!response?.data) {
+    throw new Error(`Failed to update ${resource}: No data received from API`);
+  }
+
+  return response.data;
+}
+```
+
+### 4. Response Validation Pattern
+```typescript
+if (!response?.data) {
+  throw new Error(`Failed to ${operation} ${resource}: No data received from API`);
+}
+```
+
+### 5. Debug Logging Standards
+```typescript
+// Operation entry
+debugLog('RESOURCE_EXEC', `Executing ${resource} ${operation}`, { i });
+
+// Parameter logging
+debugLog('RESOURCE_EXEC', `${operation} ${resource} with params`, params);
+
+// Update preparation
+debugLog('RESOURCE_EXEC', `Preparing ${resource} update`, { resourceId, updateBody });
+
+// Error logging
+debugLog('RESOURCE_EXEC', `Error in ${resource} operation`, { operation, error });
+```
+
+## Resource Implementation Checklist
+
+When implementing a new resource, follow this checklist:
+
+1. **Base Setup**
+   - [ ] Create resource directory structure
+   - [ ] Implement types following OpenAPI spec
+   - [ ] Create handler with singleton pattern
+   - [ ] Add validator class
+   - [ ] Register in resource registry
+
+2. **Handler Implementation**
+   - [ ] Implement standard error handling
+   - [ ] Use consistent parameter collection
+   - [ ] Follow update operation pattern
+   - [ ] Add proper response validation
+   - [ ] Include comprehensive debug logging
+
+3. **Operation Support**
+   - [ ] Implement all API-supported operations
+   - [ ] Use standard pagination handling
+   - [ ] Add proper filter support
+   - [ ] Include date handling if needed
+
+4. **Validation**
+   - [ ] Add operation validation
+   - [ ] Implement input validation
+   - [ ] Include type checking
+   - [ ] Add filter validation
+
+5. **Testing**
+   - [ ] Add unit tests for handler
+   - [ ] Include validation tests
+   - [ ] Test error scenarios
+   - [ ] Verify pagination
 
 ## Shared Utilities
 
@@ -369,7 +505,7 @@ export class ResourceHandler {
 ## Example Usage
 
 See the subscription implementation as a reference:
-- `src/nodes/CloudBlueConnectSimpleApi/resources/subscription/`
-- `src/nodes/CloudBlueConnectSimpleApi/descriptions/subscription/`
+- `src/nodes/CloudBlueCommerceSimpleApi/resources/subscription/`
+- `src/nodes/CloudBlueCommerceSimpleApi/descriptions/subscription/`
 
 Follow this pattern when implementing new resources to maintain consistency and reliability across the codebase.

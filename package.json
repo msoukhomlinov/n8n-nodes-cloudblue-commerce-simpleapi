@@ -1,15 +1,15 @@
 {
-  "name": "n8n-nodes-cloudblue-connect-simpleapi",
+  "name": "n8n-nodes-cloudblue-commerce-simpleapi",
   "version": "0.1.1",
-  "description": "n8n node to interact with CloudBlue Connect SimpleAPI",
+  "description": "n8n node to interact with CloudBlue Commerce SimpleAPI",
   "keywords": [
     "n8n-community-node-package",
     "cloudblue",
-    "connect",
+    "commerce",
     "simpleapi"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://github.com/msoukhomlinov/n8n-nodes-cloudblue-commerce-simpleapi",
   "author": {
     "name": "Max Soukhomlinov",
     "email": "maxs@intellectit.com.au"
@@ -32,14 +32,14 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/CloudBlueConnectSimpleApi.credentials.js"
+      "dist/credentials/CloudBlueCommerceSimpleApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/CloudBlueConnectSimpleApi/CloudBlueConnectSimpleApi.node.js"
+      "dist/nodes/CloudBlueCommerceSimpleApi/CloudBlueCommerceSimpleApi.node.js"
     ]
   },
   "devDependencies": {
-    "@types/node": "^18.0.0",
+    "@types/node": "^18.19.71",
     "@typescript-eslint/parser": "~5.45",
     "eslint-plugin-n8n-nodes-base": "^1.11.0",
     "gulp": "^4.0.2",

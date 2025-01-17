@@ -1,19 +1,19 @@
 # Cursor specific
-# .cursorcache
-# .cursorconfig
-# .cursorignore
-# .cursor/
-# .cursor-rules/
-# .cursor-search-cache
-# .cursor-settings.json
-# .cursor-keybindings.json
+.cursorcache
+.cursorconfig
+.cursorignore
+.cursor/
+.cursor-rules/
+.cursor-search-cache
+.cursor-settings.json
+.cursor-keybindings.json
 
 # Optional Cursor team files (uncomment if not sharing)
-#.cursor-snippets/
-#.cursor-prompts/
+cursor-snippets/
+cursor-prompts/
 
 # Project tracking
-# .project-tracker/
+.project-tracker/
 
 # Dependencies
 node_modules/

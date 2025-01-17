@@ -1,6 +1,6 @@
-# n8n-nodes-cloudblue-connect-simpleapi
+# n8n-nodes-cloudblue-commerce-simpleapi
 
-This is an n8n community node for CloudBlue Connect SimpleAPI. It provides a simple interface to interact with CloudBlue Connect services via n8n.
+This is an n8n community node for CloudBlue Commerce SimpleAPI. It provides a simple interface to interact with CloudBlue Commerce services via n8n.
 
 ## Features
 
@@ -23,7 +23,7 @@ Follow these steps to install this node:
 
 ```bash
 # Install from npm
-npm install n8n-nodes-cloudblue-connect-simpleapi
+npm install n8n-nodes-cloudblue-commerce-simpleapi
 
 # Or install from source
 npm install <path-to-repo>
@@ -34,14 +34,14 @@ npm install <path-to-repo>
 1. Open your n8n instance
 2. Go to Settings > Community Nodes
 3. Click "Install"
-4. Enter `n8n-nodes-cloudblue-connect-simpleapi`
+4. Enter `n8n-nodes-cloudblue-commerce-simpleapi`
 5. Reload n8n
 
 ## Credentials
 
 You need to configure the following credentials:
 
-- **API URL**: Your CloudBlue Connect SimpleAPI endpoint
+- **API URL**: Your CloudBlue Commerce SimpleAPI endpoint
 - **API Token**: Your API authentication token
 - **Cache Settings** (optional):
   - Enable/disable response caching
@@ -50,7 +50,7 @@ You need to configure the following credentials:
 
 ## Usage
 
-1. Add the "CloudBlue Connect Simple API" node to your workflow
+1. Add the "CloudBlue Commerce SimpleAPI" node to your workflow
 2. Select the resource type (Product, Subscription, Order, Marketplace)
 3. Choose the operation (List, Get, Create, Update)
 4. Configure operation-specific parameters
@@ -77,9 +77,9 @@ You need to configure the following credentials:
 
 ## Support
 
-- [CloudBlue Connect Documentation](https://docs.cloudblue.com/cbc/21.0/Simple-API/how-to-use/howto/)
-- [GitHub Issues](https://github.com/msoukhomlinov/n8n-nodes-cloudblue-connect-simpleapi/issues)
+- [CloudBlue Commerce Documentation](https://docs.cloudblue.com/cbc/21.0/Simple-API/how-to-use/howto/)
+- [GitHub Issues](https://github.com/msoukhomlinov/n8n-nodes-cloudblue-commerce-simpleapi/issues)
 
 ## License
 
-[MIT](LICENSE) 
+[MIT](LICENSE)
