@@ -1,21 +1,22 @@
 # n8n-nodes-cloudblue-commerce-simpleapi
 
-This is an n8n community node for CloudBlue Commerce SimpleAPI. It provides a simple interface to interact with CloudBlue Commerce services via n8n.
+This is an n8n community node for CloudBlue Commerce SimpleAPI. It provides a robust interface to interact with CloudBlue Commerce services via n8n.
 
 ## Features
 
 - **Resource Support**:
-  - Products: List, Get, Create, Update
-  - Subscriptions: List, Get, Create, Update
-  - Orders: List, Get, Create, Update
-  - Marketplaces: List, Get, Create, Update
+  - Customers: Create, Get, List, Update
+  - Orders: Get, List, Create, Update, Estimate Price
+  - Service Plans: Get, List
+  - Subscriptions: Get, List, Update
 
 - **Advanced Features**:
-  - Response Caching with automatic invalidation
-  - Client-side validation
-  - Hierarchical resource selection
-  - Pagination support
-  - Error handling with retry logic
+  - Comprehensive error handling with correlation IDs
+  - Automatic pagination support for list operations
+  - Advanced filtering capabilities with date range support
+  - Input validation through dedicated validators
+  - Detailed logging and debugging support
+  - Singleton pattern for consistent API state management
 
 ## Installation
 
@@ -41,39 +42,116 @@ npm install <path-to-repo>
 
 You need to configure the following credentials:
 
-- **API URL**: Your CloudBlue Commerce SimpleAPI endpoint
-- **API Token**: Your API authentication token
-- **Cache Settings** (optional):
-  - Enable/disable response caching
-  - Cache TTL in seconds
-  - Maximum cache size
+- **Auth URL**: The URL of the CloudBlue Commerce SimpleAPI authentication endpoint
+  - Format: `https://[your fqdn]/auth/realms/[your sr number]/protocol/openid-connect`
+  - Required for OAuth2 authentication
+
+- **API URL**: The URL of the CloudBlue Commerce SimpleAPI service API for making actual API calls
+  - Default: `https://simpleapiprod.azure-api.net/marketplace`
+  - Required for all API operations
+
+- **Username**: The username from your CloudBlue Commerce > MarketplaceAPI
+  - This is your MarketplaceAPI specific username
+
+- **Password**: The password for your MarketplaceAPI user
+  - Can be found in classic panel > users section
+
+- **Client ID**: The client ID for OAuth2 authentication
+  - Provided by your CloudBlue account manager
+  - Required for OAuth2 authentication flow
+
+- **Client Secret**: The client secret for OAuth2 authentication
+  - Provided by your CloudBlue account manager
+  - Required for OAuth2 authentication flow
+  - Keep this secure and never share it
+
+- **Subscription Key**: Password from your CloudBlue Commerce > MarketplaceAPI
+  - Required for API access
+  - Keep this secure and never share it
 
 ## Usage
 
-1. Add the "CloudBlue Commerce SimpleAPI" node to your workflow
-2. Select the resource type (Product, Subscription, Order, Marketplace)
-3. Choose the operation (List, Get, Create, Update)
-4. Configure operation-specific parameters
-5. Connect to other nodes as needed
+### Customer Operations
 
-### Example: List Products
+1. **Create Customer**
+   - Add required customer details
+   - Configure contact information
+   - Set address details
 
-1. Add the node
-2. Select "Product" as resource
-3. Choose "List" operation
-4. Optionally set:
-   - Return All: true/false
-   - Max Records: number of records to return
+2. **Get Customer**
+   - Retrieve by customer ID
+   - Access detailed customer information
 
-### Example: Create Subscription
+3. **List Customers**
+   - Filter by various parameters
+   - Pagination support
+   - Return all or limit results
 
-1. Add the node
-2. Select "Subscription" as resource
-3. Choose "Create" operation
-4. Select:
-   - Product ID (dynamically loaded)
-   - Marketplace ID (dynamically loaded)
-5. Configure subscription details
+4. **Update Customer**
+   - Modify customer details
+   - Update contact information
+   - Change address details
+
+### Order Operations
+
+1. **Create Order**
+   - Specify order details
+   - Add line items
+   - Set customer information
+
+2. **Get Order**
+   - Retrieve by order ID
+   - Access complete order details
+
+3. **List Orders**
+   - Filter by date range
+   - Advanced filtering options
+   - Pagination support
+
+4. **Update Order**
+   - Modify order properties
+   - Update order status
+   - Adjust line items
+
+5. **Estimate Price**
+   - Get price estimates for orders
+   - Calculate costs before creation
+
+### Plan Operations
+
+1. **Get Service Plan**
+   - Retrieve by plan ID
+   - Access detailed plan information
+
+2. **List Service Plans**
+   - Filter available plans
+   - Pagination support
+   - View plan details
+
+### Subscription Operations
+
+1. **Get Subscription**
+   - Retrieve by subscription ID
+   - Access subscription details
+
+2. **List Subscriptions**
+   - Filter active subscriptions
+   - Pagination support
+   - Advanced filtering
+
+3. **Update Subscription**
+   - Modify subscription properties
+   - Update subscription status
+
+## Error Handling
+
+The node implements comprehensive error handling with:
+
+- Correlation IDs for tracking requests
+- Detailed error messages
+- HTTP status code mapping
+- Automatic retry logic for transient errors
+- Rate limit handling
 
 ## Support
 

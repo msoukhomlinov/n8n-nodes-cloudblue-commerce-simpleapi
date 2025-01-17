@@ -16,7 +16,7 @@ export const baseDescription: Partial<INodeTypeDescription> = {
   name: 'cloudBlueCommerceSimpleApi',
   icon: 'file:cloudblue.svg',
   group: ['transform'],
-  version: 1,
+  version: 0.9,
   subtitle: '={{$parameter["resource"] + ": " + $parameter["operation"]}}',
   description: 'Interact with CloudBlue Commerce SimpleAPI',
   defaults: {
