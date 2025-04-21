@@ -163,7 +163,7 @@ The node implements comprehensive error handling with:
 
 If you find this node helpful and would like to support its development:
 
-[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/maxs)
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/msoukhomlinov)
 
 ## License
 

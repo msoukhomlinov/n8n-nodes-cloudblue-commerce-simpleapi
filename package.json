@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-cloudblue-commerce-simpleapi",
-  "version": "1.0",
+  "version": "1.1",
   "description": "n8n node to interact with CloudBlue Commerce SimpleAPI",
   "keywords": [
     "n8n-community-node-package",
