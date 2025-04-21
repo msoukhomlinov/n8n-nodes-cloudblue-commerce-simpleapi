@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2024-04-21
+
+### Added
+
+- Codex integration for improved API interactions
+- Enhanced documentation
+
+### Changed
+
+- Various documentation improvements
+
 ## [0.9.0] - 2025-01-17
 
 ### Added
@@ -15,4 +26,5 @@ All notable changes to this project will be documented in this file.
 - Resource selection functionality
 - Error handling and validation
 
+[1.1.0]: https://github.com/msoukhomlinov/n8n-nodes-cloudblue-commerce-simpleapi/releases/tag/v1.1.0
 [0.9.0]: https://github.com/msoukhomlinov/n8n-nodes-cloudblue-commerce-simpleapi/releases/tag/v0.9.0
