@@ -1,0 +1,22 @@
+{
+  "node": "n8n-nodes-base.cloudBlueCommerceSimpleApi",
+  "nodeVersion": "1.0",
+  "codexVersion": "1.0",
+  "categories": [
+    "Sales",
+    "Communication",
+    "Development"
+  ],
+  "resources": {
+    "primaryDocumentation": [
+      {
+        "url": "https://docs.cloudblue.com/cbc/21.0/Simple-API/how-to-use/howto/"
+      }
+    ],
+    "credentialDocumentation": [
+      {
+        "url": "https://github.com/msoukhomlinov/n8n-nodes-cloudblue-commerce-simpleapi"
+      }
+    ]
+  }
+}

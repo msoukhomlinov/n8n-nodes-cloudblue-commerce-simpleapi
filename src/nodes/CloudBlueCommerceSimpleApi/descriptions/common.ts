@@ -16,7 +16,7 @@ export const baseDescription: Partial<INodeTypeDescription> = {
   name: 'cloudBlueCommerceSimpleApi',
   icon: 'file:cloudblue.svg',
   group: ['transform'],
-  version: 0.9,
+  version: 1.0,
   subtitle: '={{$parameter["resource"] + ": " + $parameter["operation"]}}',
   description: 'Interact with CloudBlue Commerce SimpleAPI',
   defaults: {
@@ -30,6 +30,14 @@ export const baseDescription: Partial<INodeTypeDescription> = {
       required: true,
     },
   ],
+  // Codex metadata
+  codex: {
+    categories: ['Sales', 'Communication', 'Development'],
+    subcategories: {
+      Sales: ['CRM', 'Commerce'],
+    },
+    alias: ['CloudBlue', 'Commerce', 'Marketplace'],
+  },
 };
 
 export const resourceSelection = {

@@ -1,6 +1,19 @@
 # n8n-nodes-cloudblue-commerce-simpleapi
 
+![n8n-nodes-cloudblue-commerce-simpleapi](https://img.shields.io/badge/n8n--nodes--cloudblue--commerce--simpleapi-1.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow.svg)](https://buymeacoffee.com/maxs)
+
 This is an n8n community node for CloudBlue Commerce SimpleAPI. It provides a robust interface to interact with CloudBlue Commerce services via n8n.
+
+[Installation](#installation)
+[Credentials](#credentials)
+[Usage](#usage)
+[Features](#features)
+[Error Handling](#error-handling)
+[Support](#support)
+[License](#license)
 
 ## Features
 
@@ -21,16 +34,6 @@ This is an n8n community node for CloudBlue Commerce SimpleAPI. It provides a ro
 ## Installation
 
 Follow these steps to install this node:
-
-```bash
-# Install from npm
-npm install n8n-nodes-cloudblue-commerce-simpleapi
-
-# Or install from source
-npm install <path-to-repo>
-```
-
-## Configuration
 
 1. Open your n8n instance
 2. Go to Settings > Community Nodes
@@ -157,6 +160,10 @@ The node implements comprehensive error handling with:
 
 - [CloudBlue Commerce Documentation](https://docs.cloudblue.com/cbc/21.0/Simple-API/how-to-use/howto/)
 - [GitHub Issues](https://github.com/msoukhomlinov/n8n-nodes-cloudblue-commerce-simpleapi/issues)
+
+If you find this node helpful and would like to support its development:
+
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/maxs)
 
 ## License
 
