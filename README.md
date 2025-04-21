@@ -1,11 +1,10 @@
 # n8n-nodes-cloudblue-commerce-simpleapi
+This is an n8n community node for CloudBlue Commerce SimpleAPI. It provides a robust interface to interact with CloudBlue Commerce services via n8n.
 
 ![n8n-nodes-cloudblue-commerce-simpleapi](https://img.shields.io/badge/n8n--nodes--cloudblue--commerce--simpleapi-1.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow.svg)](https://buymeacoffee.com/msoukhomlinov)
-
-This is an n8n community node for CloudBlue Commerce SimpleAPI. It provides a robust interface to interact with CloudBlue Commerce services via n8n.
 
 [Installation](#installation)
 [Credentials](#credentials)
