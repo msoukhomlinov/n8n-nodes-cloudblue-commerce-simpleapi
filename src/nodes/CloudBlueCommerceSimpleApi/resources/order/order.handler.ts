@@ -58,7 +58,7 @@ export class OrderHandler {
   private async get(executeFunctions: IExecuteFunctions, i: number): Promise<IOrder> {
     this.validator.validateGetOperation(executeFunctions, i);
 
-    const orderId = executeFunctions.getNodeParameter('id', i) as string;
+    const orderId = executeFunctions.getNodeParameter('orderId', i) as string;
     debugLog('RESOURCE_EXEC', 'Getting order by ID', { orderId });
 
     const response = await this.apiService.get<IOrder>(`/orders/${orderId}`);

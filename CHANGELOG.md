@@ -2,7 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.1.0] - 2024-04-21
+## [1.1.1] - 2025-07-31
+- Fix: Corrected the parameter name for the `Order > Get` operation to resolve a "Could not get parameter" error.
+
+## [1.1.0] - 2025-04-21
 
 ### Added
 

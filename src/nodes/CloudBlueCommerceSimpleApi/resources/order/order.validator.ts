@@ -47,7 +47,7 @@ export class OrderValidator {
   public validateGetOperation(executeFunctions: IExecuteFunctions, i: number): void {
     debugLog('RESOURCE_EXEC', 'Validating get operation parameters');
 
-    const orderId = executeFunctions.getNodeParameter('id', i) as string;
+    const orderId = executeFunctions.getNodeParameter('orderId', i) as string;
     if (!orderId) {
       throw new Error('Order ID is required');
     }
