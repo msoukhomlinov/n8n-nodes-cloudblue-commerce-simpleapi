@@ -74,7 +74,7 @@ export const orderOperations: INodeProperties[] = [
 const baseOrderFields: INodeProperties[] = [
   {
     displayName: 'Order ID',
-    name: 'id',
+    name: 'orderId',
     type: 'string',
     required: true,
     default: '',
